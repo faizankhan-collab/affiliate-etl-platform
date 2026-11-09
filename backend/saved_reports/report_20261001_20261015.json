@@ -1,0 +1,64 @@
+{
+  "id": "report_20261001_20261015",
+  "title": "2026-10-01 to 2026-10-15 Run",
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-15",
+  "days_count": 15,
+  "created_at": "2026-11-06T15:09:17.030770",
+  "usd_to_inr_rate": 94.74,
+  "summary": {
+    "total_revenue": 0.0,
+    "total_internal_clicks": 15000,
+    "overall_portfolio_rpc": 0.0,
+    "total_master_rows": 4,
+    "matched_revenue_rows": 0,
+    "orphaned_affiliate_records": [],
+    "network_processing_logs": [],
+    "internal_clicks_diag": {
+      "total_brands": 4,
+      "total_internal_clicks": 15000,
+      "detected_brand_col": "Website / Brand",
+      "detected_network_col": "Affiliate Network",
+      "detected_clicks_col": "Internal Clicks",
+      "detected_date_col": "Date",
+      "date_range": "2026-10-01 to 2026-10-15",
+      "is_date_filtered": true,
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-15"
+    },
+    "date_range": "2026-10-01 to 2026-10-15",
+    "is_date_filtered": true,
+    "start_date": "2026-10-01",
+    "end_date": "2026-10-15"
+  },
+  "data": [
+    {
+      "WEBSITE / BRAND": "Ajio",
+      "AFFILIATE NETWORK": "iCubeswire",
+      "SUM of INTERNAL CLICKS": 3750,
+      "Revenue": 0.0,
+      "RPCs": 0.0
+    },
+    {
+      "WEBSITE / BRAND": "Boat Lifestyle",
+      "AFFILIATE NETWORK": "iCubeswire",
+      "SUM of INTERNAL CLICKS": 3750,
+      "Revenue": 0.0,
+      "RPCs": 0.0
+    },
+    {
+      "WEBSITE / BRAND": "Flipkart",
+      "AFFILIATE NETWORK": "iCubeswire",
+      "SUM of INTERNAL CLICKS": 3750,
+      "Revenue": 0.0,
+      "RPCs": 0.0
+    },
+    {
+      "WEBSITE / BRAND": "Myntra",
+      "AFFILIATE NETWORK": "CJ",
+      "SUM of INTERNAL CLICKS": 3750,
+      "Revenue": 0.0,
+      "RPCs": 0.0
+    }
+  ]
+}

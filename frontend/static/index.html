@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affiliate ETL & RPC Automator - Buyhatke Operations</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    };
+
+    // Dark Mode by Default unless explicitly set to 'light'
+    (function() {
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Chart.js for Advanced Analytics -->
+  <script src="/static/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css?v=3.8">
+  <style>
+    .metric-card {
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+    }
+    .metric-card:hover {
+      transform: translateY(-2px);
+    }
+    .tab-btn.active {
+      background-color: #4f46e5;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-[#080c14] text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200">
+
+  <!-- 1. Header: Master ETL Mode -->
+  <header id="header-master-nav" class="bg-white/95 dark:bg-[#0d1424]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 sticky top-0 z-30 shadow-xs dark:shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 dark:shadow-emerald-500/15">
+          <i class="ph-bold ph-chart-polar text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight flex items-center space-x-2">
+            <span>Affiliate ETL & RPC Automator</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/50">PRO</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Buyhatke Reconciliation Engine</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2.5">
+        <!-- Theme Toggle Button -->
+        <button id="btn-theme-toggle" type="button" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700/80 bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 shadow-2xs" title="Toggle Light / Dark Mode">
+          <i id="theme-toggle-icon" class="ph-bold ph-moon-stars text-amber-400 text-sm"></i>
+          <span id="theme-toggle-label">Dark Mode</span>
+        </button>
+
+        <button id="nav-btn-analytics" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800 rounded-xl transition shadow-2xs cursor-pointer">
+          <i class="ph-bold ph-chart-line-up text-sm"></i>
+          <span>Advanced Analytics</span>
+        </button>
+        <button id="btn-open-rules" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/70 transition">
+          <i class="ph ph-gear text-sm"></i>
+          <span>Brand Aliases</span>
+        </button>
+        <button id="btn-load-demo" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-xs">
+          <i class="ph-bold ph-magic-wand text-sm"></i>
+          <span>Load Demo Data</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. Header: Analytics Mode (Hidden by default, toggles seamlessly without page reload) -->
+  <header id="header-analytics-nav" class="hidden bg-white/95 dark:bg-[#0d1424]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 sticky top-0 z-30 shadow-xs dark:shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Back to Master Sheet Button -->
+        <button id="btn-back-to-master" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <i class="ph-bold ph-arrow-left text-sm"></i>
+          <span>← Back to Master Sheet</span>
+        </button>
+        <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <i class="ph-bold ph-chart-line-up text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight flex items-center space-x-2">
+            <span>Affiliate Intelligence & Advanced Analytics</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">Pro</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Cross-Network Performance, Yield Optimization & Traffic Leak Diagnostics</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Theme Toggle Button (Analytics) -->
+        <button id="btn-theme-toggle-analytics" type="button" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700/80 bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 shadow-2xs" title="Toggle Light / Dark Mode">
+          <i class="theme-toggle-icon ph-bold ph-moon-stars text-amber-400 text-sm"></i>
+          <span class="theme-toggle-label">Dark Mode</span>
+        </button>
+
+        <!-- Dataset Status Indicator -->
+        <div class="hidden sm:flex items-center space-x-1.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="header-data-indicator" class="font-medium">Live Consolidated Data</span>
+        </div>
+
+        <!-- Reload Data Button -->
+        <button id="btn-refresh-data" class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-2xs cursor-pointer" title="Re-fetch latest consolidated master data">
+          <i class="ph-bold ph-arrows-clockwise text-sm text-indigo-600 dark:text-indigo-400"></i>
+          <span>Reload</span>
+        </button>
+
+        <!-- Export CSV Button -->
+        <button id="btn-export-analytics-csv" class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/70 transition shadow-2xs cursor-pointer">
+          <i class="ph-bold ph-download-simple text-sm text-emerald-700 dark:text-emerald-400"></i>
+          <span>Export Summary</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: CONSOLIDATED MASTER SHEET ETL VIEW -->
+    <!-- ========================================== -->
+    <div id="view-master" class="space-y-6">
+
+      <!-- ======================================================== -->
+      <!-- GLOBAL PIPELINE HARMONIZATION & DATE SCOPE CONTROL PANEL -->
+      <!-- ======================================================== -->
+      <div class="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-4 sm:p-5 transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          
+          <!-- Left: Scope Definition -->
+          <div class="flex items-center space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20 shadow-2xs">
+              <i class="ph-bold ph-calendar-check text-xl"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Date Scope & Currency</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Active reporting period & FX rate</p>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Controls Cluster -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            
+            <!-- Date Range Selector -->
+            <div class="inline-flex items-center space-x-2 bg-slate-50 dark:bg-[#121c33] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs transition shadow-2xs" id="date-range-container">
+              <i class="ph-bold ph-calendar-blank text-indigo-600 dark:text-indigo-400 text-sm"></i>
+              <select id="date-range-preset" class="bg-transparent border-0 text-slate-800 dark:text-slate-100 font-semibold text-xs focus:ring-0 p-0 cursor-pointer pr-1">
+                <option value="2026-10" selected>📅 October 2026 (Full Month)</option>
+                <option value="2026-09">📅 September 2026</option>
+                <option value="2026-08">📅 August 2026</option>
+                <option value="2026-07">📅 July 2026</option>
+                <option value="2026-11">📅 November 2026</option>
+                <option value="2026-12">📅 December 2026</option>
+                <option value="custom">⚙️ Custom Date Range...</option>
+              </select>
+              
+              <!-- Start & End Date Inputs -->
+              <div id="custom-date-inputs" class="hidden flex items-center space-x-1.5 border-l border-slate-200 dark:border-slate-700 pl-2.5">
+                <span class="text-slate-400 text-[11px] font-medium">From</span>
+                <input type="date" id="input-date-start" value="2026-10-01" class="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-0.5 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                <span class="text-slate-400 text-[11px] font-medium">To</span>
+                <input type="date" id="input-date-end" value="2026-10-31" class="text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-0.5 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+              </div>
+
+              <!-- Active range badge -->
+              <span id="active-range-pill" class="inline-flex items-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/70 dark:bg-indigo-950/70 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800">
+                31 Days
+              </span>
+            </div>
+
+            <!-- USD to INR FX Rate Control -->
+            <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-[#121c33] border border-slate-200 dark:border-slate-700 text-xs shadow-2xs" title="Configurable USD to INR Exchange Rate">
+              <span class="font-semibold text-slate-600 dark:text-slate-300 text-[11px] flex items-center space-x-1">
+                <span>$1 = ₹</span>
+              </span>
+              <input type="number" id="input-usd-rate" step="0.01" value="94.74" class="w-16 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-[#0a0f1d] border border-slate-300 dark:border-slate-700 rounded-lg px-1.5 py-0.5 text-center focus:ring-1 focus:ring-indigo-500 focus:outline-none shadow-2xs">
+            </div>
+
+            <!-- Auto-Fetch Bots Dropdown Menu -->
+            <div class="relative inline-block text-left" id="bot-dropdown-container">
+              <button id="btn-bot-dropdown" type="button" title="Open Automated Affiliate Bots Menu" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs shadow-indigo-600/20 transition cursor-pointer">
+                <i class="ph-bold ph-robot text-sm"></i>
+                <span>⚡ Auto-Fetch Networks</span>
+                <i class="ph ph-caret-down text-xs transition-transform duration-150" id="bot-caret"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div id="bot-dropdown-menu" class="hidden absolute right-0 z-30 mt-1.5 w-68 origin-top-right rounded-xl bg-white dark:bg-[#0d1527] shadow-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 py-1 text-xs">
+                <div class="px-3.5 py-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/70 dark:bg-slate-900/60 flex items-center justify-between">
+                  <span>Direct API Bots</span>
+                  <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">7 Active</span>
+                </div>
+                <div class="py-1">
+                  <button id="opt-bot-cuelinks" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                      <span>⚡ Auto-Fetch Cuelinks</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">akhil@</span>
+                  </button>
+                  <button id="opt-bot-admitad" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                      <span>⚡ Auto-Fetch Admitad</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">vardhan@</span>
+                  </button>
+                  <button id="opt-bot-cashkaro" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                      <span>⚡ Auto-Fetch Cashkaro</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">shubs@</span>
+                  </button>
+                  <button id="opt-bot-zonet" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                      <span>⚡ Auto-Fetch Zonet</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">Bengaluru@</span>
+                  </button>
+                  <button id="opt-bot-icubeswire" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                      <span>⚡ Auto-Fetch iCubesWire</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">abhinavmars@</span>
+                  </button>
+                  <button id="opt-bot-cj" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span>⚡ Auto-Fetch CJ ($ → ₹)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">sneha.kansal@</span>
+                  </button>
+                  <button id="opt-bot-pantech" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-800/80 font-medium transition cursor-pointer group">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                      <span>⚡ Auto-Fetch Pantech ($ → ₹)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">kumarsomil@</span>
+                  </button>
+                </div>
+                <div class="py-1 bg-slate-50/50 dark:bg-slate-900/60 space-y-0.5">
+                  <button id="opt-bot-fast-6" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-950/80 font-semibold transition cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                      <i class="ph-bold ph-lightning text-sm text-indigo-600 dark:text-indigo-400"></i>
+                      <span>🚀 Fast Sync: 6 Networks (Excl. CJ)</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-200/70 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-200 font-bold">~3 Sec</span>
+                  </button>
+                  <button id="opt-bot-all" class="w-full text-left px-3.5 py-2 flex items-center justify-between text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/80 font-semibold transition cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                      <i class="ph-bold ph-arrows-clockwise text-sm text-emerald-600 dark:text-emerald-400"></i>
+                      <span>⚡ Full Sync: All 7 Networks (Inc. CJ)</span>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 font-bold">All 7</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- DUAL-STAGE DATA INGESTION: STEP 1 (CLICKS) & STEP 2 (REVENUE) -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- STEP 1: Internal Clicks Sheet Upload -->
+        <div class="lg:col-span-5 bg-white dark:bg-[#0d1424] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded-md bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-500/20">STEP 1</span>
+                <h2 class="font-bold text-slate-900 dark:text-white text-sm">Internal Clicks Sheet</h2>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">Base Data</span>
+            </div>
+            
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Upload Buyhatke internal click tracking sheet for the selected date range.
+            </p>
+
+            <!-- Dropzone Clicks -->
+            <div id="dropzone-clicks" class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-50/50 dark:bg-slate-900/30">
+              <input type="file" id="input-clicks" class="hidden" accept=".csv,.xlsx,.xls">
+              <div id="clicks-prompt">
+                <i class="ph ph-file-arrow-up text-3xl text-slate-400 dark:text-slate-500 mb-2 inline-block"></i>
+                <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Drop clicks file here or click to browse</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">CSV or Excel (.xlsx / .xls)</p>
+              </div>
+              <div id="clicks-preview" class="hidden text-left flex items-center justify-between p-3 bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <div class="flex items-center space-x-2.5 truncate">
+                  <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <i class="ph-bold ph-file-csv text-lg"></i>
+                  </div>
+                  <div class="truncate">
+                    <p id="clicks-filename" class="text-xs font-bold text-slate-800 dark:text-white truncate"></p>
+                    <p id="clicks-filesize" class="text-[10px] text-slate-400 dark:text-slate-400"></p>
+                  </div>
+                </div>
+                <button id="btn-remove-clicks" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition" title="Remove file">
+                  <i class="ph-bold ph-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end text-xs">
+            <a href="/api/sample-files/internal_clicks_buyhatke.csv" download class="text-blue-600 dark:text-blue-400 hover:underline font-medium inline-flex items-center space-x-1">
+              <i class="ph-bold ph-download-simple"></i>
+              <span>Download Template</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- STEP 2: Affiliate Network Files Upload -->
+        <div class="lg:col-span-7 bg-white dark:bg-[#0d1424] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">STEP 2</span>
+                <h2 class="font-bold text-slate-900 dark:text-white text-sm">Network Revenue Exports</h2>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">8 Networks</span>
+            </div>
+
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Upload affiliate commission files or click <strong class="text-slate-700 dark:text-slate-200 font-semibold">Auto-Fetch Networks</strong> above.
+            </p>
+
+            <!-- Dropzone Networks -->
+            <div id="dropzone-networks" class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-50/50 dark:bg-slate-900/30">
+              <input type="file" id="input-networks" class="hidden" multiple accept=".csv,.xlsx,.xls">
+              <i class="ph ph-files text-3xl text-slate-400 dark:text-slate-500 mb-2 inline-block"></i>
+              <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Drop network files here or click to browse</p>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Supports Cashkaro, CJ, Pantech, Admitad, Cuelinks, Zonet, iCubesWire, INRDeals</p>
+            </div>
+
+            <!-- Staged Files List -->
+            <div id="staged-networks-list" class="mt-3.5 space-y-2 max-h-44 overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <button id="btn-clear-networks" class="text-xs text-slate-400 hover:text-red-500 hidden font-medium">Clear all files</button>
+            <div class="flex items-center space-x-2 ml-auto">
+              <button id="btn-run-etl" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/25 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                <i class="ph-bold ph-play"></i>
+                <span>Run ETL & Calculate RPCs</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SAVED QUERIES & HISTORICAL RECONCILIATION REPORTS        -->
+      <!-- ======================================================== -->
+      <div id="section-saved-reports" class="space-y-4 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 shadow-2xs">
+              <i class="ph-bold ph-bookmarks-simple text-lg"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-wide">Saved Reports</h3>
+                <span id="saved-reports-count-pill" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                  0 Saved
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button id="btn-refresh-saved-reports" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition shadow-2xs cursor-pointer" title="Refresh saved reports list">
+              <i class="ph-bold ph-arrows-clockwise text-indigo-600"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Saved Report Tiles Grid -->
+        <div id="saved-reports-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Dynamically populated report tiles -->
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: DEDICATED REPORT VIEWER            -->
+    <!-- ========================================== -->
+    <div id="view-report" class="hidden space-y-6">
+
+      <!-- Report Header & Breadcrumb Bar -->
+      <div class="bg-white dark:bg-[#0d1424] px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center space-x-3 min-w-0">
+          <button id="btn-back-from-report" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs" title="Return to Saved Reports">
+            <i class="ph-bold ph-arrow-left text-sm"></i>
+            <span>Back</span>
+          </button>
+          <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+          <div class="min-w-0">
+            <h2 id="report-page-title" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate">Reconciliation Report</h2>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-1.5 truncate">
+              <span id="report-page-date-range" class="font-medium text-slate-600 dark:text-slate-300"></span>
+              <span>•</span>
+              <span id="report-page-timestamp" class="text-slate-400 dark:text-slate-500"></span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
+          <button id="btn-report-analytics" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-xs cursor-pointer shrink-0">
+            <i class="ph-bold ph-chart-line-up text-sm"></i>
+            <span>Analytics</span>
+          </button>
+          <button id="btn-report-copy-tsv" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition shadow-2xs cursor-pointer shrink-0" title="Copy table as TSV to paste directly into Google Sheets">
+            <i class="ph-bold ph-copy text-sm text-emerald-600 dark:text-emerald-400"></i>
+            <span id="report-copy-text">Copy Sheets</span>
+          </button>
+          <button id="btn-report-export-excel" class="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition shadow-2xs cursor-pointer shrink-0" title="Export Excel (.xlsx)">
+            <i class="ph-bold ph-file-xls text-sm text-emerald-600 dark:text-emerald-400"></i>
+            <span>Excel</span>
+          </button>
+          <button id="btn-report-export-csv" class="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition shadow-2xs cursor-pointer shrink-0" title="Export CSV">
+            <i class="ph-bold ph-file-csv text-sm text-blue-600 dark:text-blue-400"></i>
+            <span>CSV</span>
+          </button>
+          <button id="btn-report-delete" class="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition shadow-2xs cursor-pointer shrink-0" title="Delete this saved query">
+            <i class="ph-bold ph-trash text-sm"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Section (Rendered inside Report Viewer) -->
+      <div id="section-kpis" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-slate-400 dark:text-slate-400 tracking-wider uppercase">Performance Summary</h3>
+          <span id="kpi-matched-pill" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"></span>
+        </div>
+
+        <!-- Date Synchronization Audit Banner (Hidden to avoid clutter unless needed) -->
+        <div id="banner-date-sync" class="hidden p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#0b1325] dark:to-[#0f172a] border border-blue-200/80 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-xs">
+          <div class="flex items-center space-x-2.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div>
+              <span class="font-bold text-slate-800 dark:text-slate-200">Date Range Synchronized:</span>
+              <span id="sync-date-window" class="font-semibold text-blue-700 dark:text-blue-400 ml-1">October 2026</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
+            <span id="sync-rows-count" class="inline-flex items-center space-x-1 font-medium bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-blue-200/60 dark:border-slate-700 shadow-2xs">
+              <i class="ph ph-calendar-check text-blue-600 dark:text-blue-400"></i>
+              <span id="sync-rows-text">All Days Active</span>
+            </span>
+            <span id="sync-clicks-badge" class="inline-flex items-center space-x-1 font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/70 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+              <i class="ph ph-check-circle"></i>
+              <span>100% Date Matched</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <!-- Card 1: Total Revenue -->
+          <div class="bg-white dark:bg-[#0d1424] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <i class="ph-bold ph-currency-inr text-lg"></i>
+              </div>
+            </div>
+            <p id="kpi-revenue" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">₹0.00</p>
+          </div>
+
+          <!-- Card 2: Total Clicks -->
+          <div class="bg-white dark:bg-[#0d1424] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Internal Clicks</span>
+              <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <i class="ph-bold ph-cursor-click text-lg"></i>
+              </div>
+            </div>
+            <p id="kpi-clicks" class="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 font-mono tracking-tight">0</p>
+          </div>
+
+          <!-- Card 3: Portfolio RPC -->
+          <div class="bg-white dark:bg-[#0d1424] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Portfolio RPC</span>
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <i class="ph-bold ph-trend-up text-lg"></i>
+              </div>
+            </div>
+            <p id="kpi-rpc" class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 font-mono tracking-tight">0.00</p>
+          </div>
+
+          <!-- Card 4: Matched Rows & Audit Status -->
+          <div class="bg-white dark:bg-[#0d1424] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Campaigns</span>
+              <div id="kpi-status-icon" class="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                <i class="ph-bold ph-rows text-lg"></i>
+              </div>
+            </div>
+            <p id="kpi-rows-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">0 / 0</p>
+          </div>
+        </div>
+        </div>
+
+        <!-- Orphaned Revenue Warning Banner if any -->
+        <div id="banner-orphans" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-3">
+              <i class="ph-bold ph-warning text-amber-600 text-xl mt-0.5"></i>
+              <div>
+                <h4 class="font-semibold text-xs text-amber-900">Unmatched / Orphaned Revenue Detected</h4>
+                <p class="text-xs text-amber-700 mt-0.5" id="orphans-summary-text"></p>
+              </div>
+            </div>
+            <button id="btn-toggle-orphans" class="text-xs font-semibold text-amber-800 underline hover:text-amber-900">View Details</button>
+          </div>
+          <div id="orphans-details" class="hidden mt-3 pt-3 border-t border-amber-200/60 overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-amber-800 font-semibold border-b border-amber-200">
+                  <th class="py-1">Network</th>
+                  <th class="py-1">Reported Brand</th>
+                  <th class="py-1">Standardized Brand</th>
+                  <th class="py-1 text-right">Revenue</th>
+                </tr>
+              </thead>
+              <tbody id="orphans-table-body" class="divide-y divide-amber-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Data Grid Section -->
+      <div id="section-results" class="hidden bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <!-- Toolbar -->
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-bold text-slate-900 dark:text-white">Consolidated Master Sheet</h3>
+              <span id="badge-table-dates" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">📅 Oct 1 – Oct 31, 2026</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Reconciled affiliate master table</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Search Input -->
+            <div class="relative">
+              <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+              <input type="text" id="search-table" placeholder="Filter brand or network..." class="pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48">
+            </div>
+
+            <!-- Advanced Analytics Button -->
+            <button id="btn-open-analytics" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-sm shadow-indigo-500/25 transition active:scale-95 cursor-pointer" title="Route to dedicated full-page Advanced Analytics dashboard">
+              <i class="ph-bold ph-chart-line-up text-sm"></i>
+              <span>📊 Advanced Analytics</span>
+            </button>
+
+            <!-- Quick Copy for Google Sheets -->
+            <button id="btn-copy-tsv" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition active:scale-95 shadow-xs" title="Copy table as TSV to paste directly into Google Sheets">
+              <i class="ph-bold ph-copy text-sm text-emerald-600 dark:text-emerald-400"></i>
+              <span id="copy-text">Copy for Google Sheets</span>
+            </button>
+
+            <!-- Export Excel -->
+            <button id="btn-export-excel" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/70 transition shadow-xs">
+              <i class="ph-bold ph-file-xls text-sm text-emerald-700 dark:text-emerald-400"></i>
+              <span>Excel (.xlsx)</span>
+            </button>
+
+            <!-- Export CSV -->
+            <button id="btn-export-csv" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-xs">
+              <i class="ph-bold ph-file-csv text-sm text-blue-600 dark:text-blue-400"></i>
+              <span>CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Master Data Table -->
+        <div class="overflow-x-auto max-h-[550px]">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-emerald-50/70 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold sticky top-0 border-b border-slate-200 dark:border-slate-800 z-10 backdrop-blur-xs">
+              <tr>
+                <th class="py-3 px-4 w-12 text-center text-slate-400">#</th>
+                <th class="py-3 px-4">WEBSITE / BRAND</th>
+                <th class="py-3 px-4">AFFILIATE NETWORK</th>
+                <th class="py-3 px-4 text-right">SUM of INTERNAL CLICKS</th>
+                <th class="py-3 px-4 text-right">Revenue (₹)</th>
+                <th class="py-3 px-4 text-right font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40">RPCs</th>
+              </tr>
+            </thead>
+            <tbody id="master-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200 font-mono">
+              <!-- Dynamic rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Footer / Count -->
+        <div class="p-3 bg-slate-50 dark:bg-[#090e1b] border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <span id="table-row-count" class="font-medium">Showing 0 rows</span>
+          <span class="text-[11px] text-slate-400 dark:text-slate-500">One-click TSV copy ready for Google Sheets</span>
+        </div>
+      </div>
+
+      <!-- Processing Logs Drawer -->
+      <div id="section-logs" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+        <h3 class="font-semibold text-slate-900 text-xs uppercase tracking-wide mb-3 flex items-center space-x-2">
+          <i class="ph ph-terminal-window text-sm text-slate-500"></i>
+          <span>Network Adapter Pipeline Logs</span>
+        </h3>
+        <div id="logs-container" class="space-y-2"></div>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: ADVANCED ANALYTICS INTELLIGENCE    -->
+    <!-- (Toggles seamlessly without page reload)   -->
+    <!-- ========================================== -->
+    <div id="view-analytics" class="hidden space-y-6">
+
+      <!-- Loading State Skeleton -->
+      <div id="analytics-loading" class="hidden p-12 text-center bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-indigo-600 border-t-transparent"></div>
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Aggregating and computing advanced portfolio metrics...</p>
+        <p class="text-xs text-slate-400 dark:text-slate-500">Processing clicks, multi-network payouts, and brand yields</p>
+      </div>
+
+      <!-- Main Content Container -->
+      <div id="analytics-content" class="space-y-6">
+
+        <!-- Executive KPI Cards Grid (6 Cards) -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+
+          <!-- Card 1: Total Confirmed Revenue -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Total Revenue</span>
+              <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <i class="ph-bold ph-currency-inr text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-total-revenue" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-emerald-400 font-mono">₹0.00</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                <i class="ph-bold ph-trend-up"></i>
+                <span id="kpi-revenue-breakdown">Consolidated Payout</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Total Internal Clicks -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Internal Clicks</span>
+              <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <i class="ph-bold ph-cursor-click text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-total-clicks" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-blue-400 font-mono">0</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-blue-700 dark:text-blue-400 font-medium">
+                <i class="ph ph-broadcast"></i>
+                <span id="kpi-clicks-context">145 Brands Tracked</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Blended Overall RPC -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Blended RPC</span>
+              <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <i class="ph-bold ph-scales text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-blended-rpc" class="text-xl sm:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 font-mono">₹0.00</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-indigo-700 dark:text-indigo-400 font-medium">
+                <span>Weighted portfolio RPC</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Monetized Portfolio RPC -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Earning RPC</span>
+              <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <i class="ph-bold ph-lightning text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-earning-rpc" class="text-xl sm:text-2xl font-extrabold text-purple-700 dark:text-purple-400 font-mono">₹0.00</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-purple-700 dark:text-purple-400 font-medium">
+                <span>Active earning brands</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Monetization Rate -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Monetized Brands</span>
+              <div class="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                <i class="ph-bold ph-check-circle text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-monetized-count" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-teal-400 font-mono">0 / 0</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-teal-700 dark:text-teal-400 font-medium">
+                <span id="kpi-monetized-pct">0% conversion rate</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6: Highest Single-Brand RPC -->
+          <div class="metric-card bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Top Yield Brand</span>
+              <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <i class="ph-bold ph-crown text-base"></i>
+              </div>
+            </div>
+            <div>
+              <p id="kpi-top-brand-rpc" class="text-xl sm:text-2xl font-extrabold text-amber-700 dark:text-amber-400 font-mono">₹0.00</p>
+              <div class="mt-1 flex items-center space-x-1 text-[11px] text-amber-800 dark:text-amber-400 font-medium truncate" id="kpi-top-brand-name">
+                <span>None</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Executive Insights & Revenue Growth Playbook (Manager View) -->
+        <div id="executive-growth-playbook" class="bg-gradient-to-br from-indigo-950/70 via-[#0d1424] to-purple-950/50 p-5 rounded-2xl border border-indigo-500/30 shadow-lg space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-indigo-500/20">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                <i class="ph-bold ph-lightbulb-filament text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                  <span>Executive Revenue & RPC Growth Playbook</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Manager Action Plan</span>
+                </h3>
+                <p class="text-xs text-slate-400">Strategic opportunities to eliminate click bleed and optimize network routing</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="text-left sm:text-right">
+                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Identified Revenue Upside</span>
+                <p id="playbook-total-upside" class="text-lg font-black text-emerald-400 font-mono tracking-tight">+₹33.1 Lakhs / Mo</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Metrics Row: Click Waste vs Low-RPC Drag -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <!-- Card A: Click Waste Bleed -->
+            <div class="p-3.5 rounded-xl bg-rose-950/20 border border-rose-500/20 flex items-start space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="ph-bold ph-drop-half-bottom text-base"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-rose-300">Pillar 1: Wasted Traffic Bleed</span>
+                  <span id="playbook-waste-pct" class="text-[11px] font-bold text-rose-400 font-mono">24.3% Wasted</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1">
+                  <span id="playbook-waste-clicks" class="font-bold text-white font-mono">4.06M</span> internal clicks generated <span class="text-rose-400 font-bold">₹0.00</span>.
+                  Est. recoverable revenue: <span id="playbook-waste-lost" class="font-bold text-amber-300 font-mono">~₹13.28 Lakhs</span>.
+                </p>
+              </div>
+            </div>
+
+            <!-- Card B: Network RPC Disparity -->
+            <div class="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-500/20 flex items-start space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="ph-bold ph-scales text-base"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-indigo-300">Pillar 2: Network Yield Disparity</span>
+                  <span class="text-[11px] font-bold text-indigo-400 font-mono">₹0.50 vs ₹0.02</span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1">
+                  Top network <span class="text-emerald-400 font-bold">Zonet (₹0.5046 RPC)</span> yields <span class="font-bold text-white">13x to 20x</span> higher than <span class="text-purple-400 font-bold">Pantech (₹0.0375)</span> and <span class="text-purple-400 font-bold">Cashkaro (₹0.0256)</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actionable Recommendations Grid (3 Strategic Plays) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- Play 1 -->
+            <div class="p-3.5 rounded-xl bg-slate-900/60 dark:bg-[#070b14] border border-slate-700/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Priority 1 • High Impact</span>
+                <span class="text-xs font-extrabold text-emerald-400 font-mono">+₹26.68L</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Flipkart Traffic Reallocation</h4>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                3.92M clicks sent to Pantech (₹0.01 RPC), Adgama (₹0), and EarnPe (₹0). Shifting to <strong class="text-emerald-300">Zonet (₹0.68 RPC)</strong> unleashes massive revenue growth.
+              </p>
+            </div>
+
+            <!-- Play 2 -->
+            <div class="p-3.5 rounded-xl bg-slate-900/60 dark:bg-[#070b14] border border-slate-700/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-400">Priority 2 • Quick Win</span>
+                <span class="text-xs font-extrabold text-indigo-400 font-mono">+₹4.60L</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Myntra Route Consolidation</h4>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                1.15M clicks on zero/low-yield networks (CJ, Affinity, Cashkaro). Shift traffic to <strong class="text-indigo-300">Admitad (₹0.40 RPC)</strong> or <strong class="text-emerald-300">Zonet (₹0.78 RPC)</strong>.
+              </p>
+            </div>
+
+            <!-- Play 3 -->
+            <div class="p-3.5 rounded-xl bg-slate-900/60 dark:bg-[#070b14] border border-slate-700/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Priority 3 • Immediate Fix</span>
+                <span class="text-xs font-extrabold text-purple-400 font-mono">+₹1.83L</span>
+              </div>
+              <h4 class="text-xs font-bold text-white">Ajio Internal Tag Monetization</h4>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                390k clicks currently on unmonetized <code class="text-[10px] text-slate-300">Special (OWN)</code> tag making ₹0. Route to <strong class="text-purple-300">Pantech (₹0.47 RPC)</strong> or Cuelinks.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Filter & Search Bar -->
+        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Search -->
+              <div class="relative">
+                <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                <input type="text" id="analytics-search" placeholder="Search brand or network..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 w-44 sm:w-56">
+              </div>
+
+              <!-- Network Filter -->
+              <select id="filter-network" class="text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+                <option value="all">All Affiliate Networks</option>
+              </select>
+
+              <!-- Performance Tier Filter -->
+              <select id="filter-tier" class="text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+                <option value="all">All RPC Tiers</option>
+                <option value="high">🚀 High Yield (RPC ≥ ₹1.00)</option>
+                <option value="mid">📈 Medium Yield (RPC ₹0.20 - ₹1.00)</option>
+                <option value="low">📉 Low Yield (RPC ₹0.01 - ₹0.20)</option>
+                <option value="leak">⚠️ Traffic Leaks (RPC = ₹0, Clicks > 500)</option>
+              </select>
+
+              <!-- Minimum Clicks Filter -->
+              <select id="filter-clicks" class="text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+                <option value="0">All Traffic Volumes</option>
+                <option value="100">Clicks ≥ 100</option>
+                <option value="500">Clicks ≥ 500</option>
+                <option value="1000">Clicks ≥ 1,000</option>
+                <option value="10000">Clicks ≥ 10,000</option>
+              </select>
+            </div>
+
+            <!-- Sort and Reset -->
+            <div class="flex items-center space-x-2">
+              <select id="filter-sort" class="text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+                <option value="rev-desc">Sort: Revenue (High to Low)</option>
+                <option value="clicks-desc">Sort: Clicks (High to Low)</option>
+                <option value="rpc-desc">Sort: RPC (High to Low)</option>
+                <option value="brand-asc">Sort: Brand (A to Z)</option>
+              </select>
+
+              <button id="btn-reset-filters" class="p-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Reset all filters">
+                <i class="ph-bold ph-arrow-counter-clockwise text-sm"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section (Grid of 4 Charts) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          <!-- Chart 1: Revenue Share by Network -->
+          <div class="bg-white dark:bg-[#0d1424] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Revenue Share by Network</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Proportional confirmed revenue distribution across partners</p>
+              </div>
+              <span class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full" id="chart-rev-total">₹0.00</span>
+            </div>
+            <div class="relative h-64 flex items-center justify-center">
+              <canvas id="chart-revenue-donut"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Clicks Share by Network -->
+          <div class="bg-white dark:bg-[#0d1424] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Internal Traffic Share by Network</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Distribution of internal click routing across networks</p>
+              </div>
+              <span class="text-xs font-mono font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full" id="chart-clicks-total">0 Clicks</span>
+            </div>
+            <div class="relative h-64 flex items-center justify-center">
+              <canvas id="chart-clicks-donut"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Network Efficiency Benchmark (Revenue vs RPC) -->
+          <div class="bg-white dark:bg-[#0d1424] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Network Benchmark: Revenue vs RPC</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Total earnings vs average earning yield per click by network</p>
+              </div>
+              <span class="text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 px-2 py-0.5 rounded-full">Yield Index</span>
+            </div>
+            <div class="relative h-64">
+              <canvas id="chart-network-bar"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Top 10 Revenue Champions -->
+          <div class="bg-white dark:bg-[#0d1424] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Top 10 Revenue Generating Brands</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Highest earning brands and their confirmed affiliate revenue</p>
+              </div>
+              <span class="text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-full">Top Yield</span>
+            </div>
+            <div class="relative h-64">
+              <canvas id="chart-top-brands-bar"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Analytical Tabs Section -->
+        <div class="bg-white dark:bg-[#0d1424] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <!-- Tab Navigation Bar -->
+          <div class="p-3 bg-slate-50/80 dark:bg-[#090e1b] border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-1.5">
+            <button class="tab-btn active px-3.5 py-2 text-xs rounded-xl font-medium transition cursor-pointer flex items-center space-x-1.5" data-tab="tab-networks">
+              <i class="ph-bold ph-buildings"></i>
+              <span>Network Performance Scorecard</span>
+            </button>
+            <button class="tab-btn px-3.5 py-2 text-xs rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition cursor-pointer flex items-center space-x-1.5" data-tab="tab-yield">
+              <i class="ph-bold ph-crown"></i>
+              <span>Top Yield Champions (High RPC)</span>
+            </button>
+            <button class="tab-btn px-3.5 py-2 text-xs rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition cursor-pointer flex items-center space-x-1.5" data-tab="tab-leaks">
+              <i class="ph-bold ph-warning-circle text-amber-500"></i>
+              <span>Traffic Leaks & Opportunities</span>
+              <span id="badge-leaks-count" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold">0</span>
+            </button>
+            <button class="tab-btn px-3.5 py-2 text-xs rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition cursor-pointer flex items-center space-x-1.5" data-tab="tab-arbitrage">
+              <i class="ph-bold ph-git-diff"></i>
+              <span>Cross-Network Arbitrage</span>
+            </button>
+            <button class="tab-btn px-3.5 py-2 text-xs rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition cursor-pointer flex items-center space-x-1.5" data-tab="tab-grid">
+              <i class="ph-bold ph-table"></i>
+              <span>Filtered Master Dataset</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Network Scorecard -->
+          <div id="tab-networks" class="tab-content p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Network Performance Scorecard</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Detailed breakdown of brands, clicks, revenue, and efficiency by network</p>
+              </div>
+              <span class="text-xs text-slate-400 dark:text-slate-500">Sorted by Total Confirmed Revenue</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold border-y border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3">Affiliate Network</th>
+                    <th class="py-2.5 px-3 text-right">Brands Tracked</th>
+                    <th class="py-2.5 px-3 text-right">Monetized Brands</th>
+                    <th class="py-2.5 px-3 text-right">Internal Clicks</th>
+                    <th class="py-2.5 px-3 text-right">Confirmed Revenue (₹)</th>
+                    <th class="py-2.5 px-3 text-right font-bold text-indigo-900 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-950/40">Network Blended RPC</th>
+                    <th class="py-2.5 px-3 text-right">Revenue Share (%)</th>
+                    <th class="py-2.5 px-3 text-right">Clicks Share (%)</th>
+                    <th class="py-2.5 px-3 text-center">Efficiency Rating</th>
+                  </tr>
+                </thead>
+                <tbody id="table-network-scorecard" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-200">
+                  <!-- Dynamically generated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 2: Top Yield Champions -->
+          <div id="tab-yield" class="tab-content hidden p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Highest RPC Leaders (Min. 50 Clicks)</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Brands delivering superior revenue yield per click, ideal for traffic scaling</p>
+              </div>
+              <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">High Yield Assets</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-emerald-50/70 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold border-y border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3 text-center w-12">#</th>
+                    <th class="py-2.5 px-3">Brand / Merchant</th>
+                    <th class="py-2.5 px-3">Affiliate Network</th>
+                    <th class="py-2.5 px-3 text-right">Internal Clicks</th>
+                    <th class="py-2.5 px-3 text-right">Confirmed Revenue</th>
+                    <th class="py-2.5 px-3 text-right font-bold text-emerald-900 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/40">RPC (₹)</th>
+                    <th class="py-2.5 px-3 text-center">Yield Tier</th>
+                  </tr>
+                </thead>
+                <tbody id="table-yield-leaders" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-200">
+                  <!-- Dynamically generated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 3: Traffic Leaks & Opportunities -->
+          <div id="tab-leaks" class="tab-content hidden p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">High Traffic Brands with ₹0 Revenue (Monetization Leaks)</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Brands with significant user traffic but zero affiliate earnings recorded</p>
+              </div>
+              <span class="text-xs font-semibold text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800">Opportunity Finder</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-amber-50/60 dark:bg-[#070d1a] text-amber-900 dark:text-amber-400 font-semibold border-y border-amber-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3">Brand / Merchant</th>
+                    <th class="py-2.5 px-3">Assigned Network / Tag</th>
+                    <th class="py-2.5 px-3 text-right font-bold">Wasted Clicks</th>
+                    <th class="py-2.5 px-3 text-right">Estimated Lost Revenue</th>
+                    <th class="py-2.5 px-3">Recommended Operational Action</th>
+                  </tr>
+                </thead>
+                <tbody id="table-traffic-leaks" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-200">
+                  <!-- Dynamically generated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 4: Multi-Network Arbitrage -->
+          <div id="tab-arbitrage" class="tab-content hidden p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Cross-Network Brand Arbitrage Matrix</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Brands running simultaneously on multiple networks — optimize routing</p>
+              </div>
+              <span class="text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">Routing Optimization</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-indigo-50/60 dark:bg-[#070d1a] text-indigo-950 dark:text-indigo-400 font-semibold border-y border-indigo-200 dark:border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3">Brand</th>
+                    <th class="py-2.5 px-3">Network Option A</th>
+                    <th class="py-2.5 px-3 text-right">Option A RPC</th>
+                    <th class="py-2.5 px-3">Network Option B</th>
+                    <th class="py-2.5 px-3 text-right">Option B RPC</th>
+                    <th class="py-2.5 px-3 text-right">RPC Differential</th>
+                    <th class="py-2.5 px-3 text-center">Recommended Network</th>
+                  </tr>
+                </thead>
+                <tbody id="table-arbitrage-matrix" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-200">
+                  <!-- Dynamically generated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 5: Filtered Master Grid -->
+          <div id="tab-grid" class="tab-content hidden p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-white">Filtered Master Dataset View</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400" id="filtered-grid-subtitle">Displaying 0 of 0 records</p>
+              </div>
+              <button id="btn-copy-filtered-tsv" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-2xs cursor-pointer">
+                <i class="ph-bold ph-copy text-sm text-indigo-600 dark:text-indigo-400"></i>
+                <span id="copy-filtered-text">Copy Visible Rows</span>
+              </button>
+            </div>
+            <div class="overflow-x-auto max-h-[500px]">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold sticky top-0 border-b border-slate-200 dark:border-slate-800 z-10">
+                  <tr>
+                    <th class="py-2.5 px-3 text-center w-12 text-slate-400">#</th>
+                    <th class="py-2.5 px-3">WEBSITE / BRAND</th>
+                    <th class="py-2.5 px-3">AFFILIATE NETWORK</th>
+                    <th class="py-2.5 px-3 text-right">SUM of INTERNAL CLICKS</th>
+                    <th class="py-2.5 px-3 text-right">Revenue (₹)</th>
+                    <th class="py-2.5 px-3 text-right font-bold text-emerald-900 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40">RPCs</th>
+                    <th class="py-2.5 px-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-filtered-grid" class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-200">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Brand Mapping Aliases -->
+  <div id="modal-aliases" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#0d1424] rounded-2xl max-w-xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Brand Normalization Rules</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Map custom network campaign names to canonical brand names</p>
+        </div>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Add New Mapping -->
+      <div class="bg-slate-50 dark:bg-[#090e1b] p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Add New Brand Alias</p>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="input-alias-raw" placeholder="Raw name (e.g. Myntra CPS [IN])" class="px-3 py-1.5 text-xs bg-white dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-lg">
+          <input type="text" id="input-alias-canonical" placeholder="Canonical Brand (e.g. Myntra)" class="px-3 py-1.5 text-xs bg-white dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-lg">
+        </div>
+        <button id="btn-save-alias" class="w-full py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition">Save Alias</button>
+      </div>
+
+      <!-- Current Mappings List -->
+      <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Existing Brand Rules</p>
+        <div id="aliases-list" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/analytics.js?v=3.8"></script>
+  <script src="/static/app.js?v=3.8"></script>
+</body>
+</html>

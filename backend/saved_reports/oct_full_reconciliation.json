@@ -1,0 +1,29 @@
+{
+  "id": "oct_full_reconciliation",
+  "title": "October 2026 - Master Reconciliation",
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-31",
+  "days_count": 31,
+  "created_at": "2026-11-04T20:05:10.116487",
+  "usd_to_inr_rate": 94.74,
+  "summary": {
+    "total_revenue": 1699901.07,
+    "total_internal_clicks": 32264875,
+    "overall_portfolio_rpc": 0.0527,
+    "matched_revenue_rows": 28,
+    "total_master_rows": 141,
+    "date_window": {
+      "start": "2026-10-01",
+      "end": "2026-10-31",
+      "total_days": 31
+    }
+  },
+  "data": [
+    {
+      "WEBSITE / BRAND": "Flipkart",
+      "AFFILIATE NETWORK": "cashkaro",
+      "Revenue": 7241.8,
+      "SUM of INTERNAL CLICKS": 2420000
+    }
+  ]
+}

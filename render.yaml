@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: affiliate-etl-platform
+    env: docker
+    plan: standard
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000

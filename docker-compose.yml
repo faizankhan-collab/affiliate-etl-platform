@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  affiliate-etl:
+    build: .
+    container_name: affiliate-etl-platform
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+    volumes:
+      # Persist saved reports and ingested files across container updates
+      - ./backend/saved_reports:/app/backend/saved_reports
+      - ./downloads:/app/downloads
+      - ./backend/sample_data:/app/backend/sample_data

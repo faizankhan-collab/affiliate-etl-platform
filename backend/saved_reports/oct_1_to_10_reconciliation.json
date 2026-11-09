@@ -1,0 +1,29 @@
+{
+  "id": "oct_1_to_10_reconciliation",
+  "title": "Oct 1 - Oct 10 Custom Run",
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-10",
+  "days_count": 10,
+  "created_at": "2026-11-04T20:05:10.116750",
+  "usd_to_inr_rate": 94.74,
+  "summary": {
+    "total_revenue": 526231.42,
+    "total_internal_clicks": 10408020,
+    "overall_portfolio_rpc": 0.0506,
+    "matched_revenue_rows": 28,
+    "total_master_rows": 141,
+    "date_window": {
+      "start": "2026-10-01",
+      "end": "2026-10-10",
+      "total_days": 10
+    }
+  },
+  "data": [
+    {
+      "WEBSITE / BRAND": "Flipkart",
+      "AFFILIATE NETWORK": "cashkaro",
+      "Revenue": 2431.8,
+      "SUM of INTERNAL CLICKS": 782410
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<USER_REQUEST>
+its saying this just asking dude because for cuelinks,cashkaro and internal clicks one i will give you like this so first it should be perfectly working for this dude it should be working perfectly and calculating the rpcs perfectly mate
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-02T17:03:04+05:30.
+
+The user has uploaded 1 image(s):
+- /Users/faizan/.gemini/antigravity/brain/5048cda7-761c-4bb4-b7d7-88a56df02f96/.user_uploaded/media_1793618993177_522ea5ec.png
+You can embed this image in an artifact if you need the USER to review it.
+</ADDITIONAL_METADATA>

@@ -1,0 +1,389 @@
+/* ========================================================
+   AFFILIATE ETL PLATFORM - MODERN EXECUTIVE STYLESHEET
+   Light & Dark Mode (Dark Mode Default) - Ultra Clean & OP
+   ======================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color-scheme: light dark;
+}
+
+/* ==========================================
+   SCROLLBARS
+   ========================================== */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #2a374f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3e5070;
+}
+
+/* ==========================================
+   METRIC CARDS & INTERACTIVE HOVER
+   ========================================== */
+.metric-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+.table-row-hover {
+  transition: background-color 0.15s ease;
+}
+.table-row-hover:hover {
+  background-color: #f8fafc;
+}
+
+/* ==========================================
+   DARK MODE FOUNDATION & AMBIENT LIGHTING
+   ========================================== */
+html.dark body {
+  background-color: #070b13;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #e2e8f0;
+}
+
+/* Header Glassmorphism in Dark Mode */
+html.dark #header-master-nav,
+html.dark #header-analytics-nav {
+  background: rgba(11, 16, 29, 0.88) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Cards & Containers in Dark Mode (catches Tailwind opacity variants too) */
+html.dark .bg-white,
+html.dark [class*="bg-white"] {
+  background-color: #0d1527 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .bg-slate-50,
+html.dark [class*="bg-slate-50"] {
+  background-color: #090e1b !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .bg-slate-100,
+html.dark [class*="bg-slate-100"] {
+  background-color: #141f36 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Borders in Dark Mode */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark [class*="border-slate-200"],
+html.dark [class*="border-slate-100"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .border-slate-300 {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Typography in Dark Mode: Ultra Crisp High-Contrast */
+html.dark .text-slate-900,
+html.dark [class*="text-slate-900"] {
+  color: #ffffff !important;
+}
+html.dark .text-slate-800,
+html.dark [class*="text-slate-800"] {
+  color: #f1f5f9 !important;
+}
+html.dark .text-slate-700,
+html.dark [class*="text-slate-700"] {
+  color: #cbd5e1 !important;
+}
+html.dark .text-slate-600,
+html.dark [class*="text-slate-600"] {
+  color: #94a3b8 !important;
+}
+html.dark .text-slate-500,
+html.dark [class*="text-slate-500"] {
+  color: #94a3b8 !important;
+}
+html.dark .text-slate-400,
+html.dark [class*="text-slate-400"] {
+  color: #64748b !important;
+}
+
+/* Fix Dark Inks on Dark Backgrounds */
+html.dark [class*="text-emerald-900"],
+html.dark [class*="text-emerald-800"] {
+  color: #34d399 !important;
+}
+html.dark [class*="text-blue-900"],
+html.dark [class*="text-blue-800"] {
+  color: #60a5fa !important;
+}
+html.dark [class*="text-indigo-900"],
+html.dark [class*="text-indigo-800"] {
+  color: #a5b4fc !important;
+}
+html.dark [class*="text-purple-900"],
+html.dark [class*="text-purple-800"],
+html.dark [class*="text-purple-700"] {
+  color: #c084fc !important;
+}
+html.dark [class*="text-amber-900"],
+html.dark [class*="text-amber-800"] {
+  color: #fbbf24 !important;
+}
+
+/* Metric Cards in Dark Mode */
+html.dark .metric-card {
+  background: linear-gradient(150deg, #111a30 0%, #0c1426 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .metric-card:hover {
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 14px 35px -6px rgba(99, 102, 241, 0.2), 0 0 1px 1px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Glowing KPI Numbers */
+html.dark #kpi-revenue,
+html.dark #kpi-total-revenue {
+  color: #34d399 !important;
+  text-shadow: 0 0 24px rgba(52, 211, 153, 0.35);
+}
+html.dark #kpi-clicks,
+html.dark #kpi-total-clicks {
+  color: #60a5fa !important;
+  text-shadow: 0 0 24px rgba(96, 165, 250, 0.35);
+}
+html.dark #kpi-rpc,
+html.dark #kpi-blended-rpc {
+  color: #a78bfa !important;
+  text-shadow: 0 0 24px rgba(167, 139, 250, 0.35);
+}
+html.dark #kpi-rows-count,
+html.dark #kpi-matched-count {
+  color: #2dd4bf !important;
+  text-shadow: 0 0 24px rgba(45, 212, 191, 0.35);
+}
+
+/* ==========================================
+   SAVED REPORT CARDS & SUB-BOX CONTRAST FIX
+   ========================================== */
+html.dark .report-tile {
+  background-color: #0c1322 !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .report-tile:hover {
+  background-color: #101a2f !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 16px 35px -6px rgba(0, 0, 0, 0.6) !important;
+}
+html.dark .report-tile .grid > div {
+  background-color: #050914 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .report-tile .grid > div span:first-child {
+  color: #94a3b8 !important;
+}
+
+/* Form Controls in Dark Mode */
+html.dark input[type="text"],
+html.dark input[type="date"],
+html.dark input[type="number"],
+html.dark select {
+  background-color: #121c33 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+}
+html.dark input[type="text"]:focus,
+html.dark input[type="date"]:focus,
+html.dark input[type="number"]:focus,
+html.dark select:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Date Selector Pill Container in Dark Mode */
+html.dark #date-range-container {
+  background-color: #10192e !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark #date-range-preset {
+  color: #f8fafc !important;
+}
+html.dark #date-range-preset option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+/* USD FX Input in Dark Mode */
+html.dark #input-usd-rate {
+  background-color: #060a14 !important;
+  color: #34d399 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Dropdown Menus in Dark Mode */
+html.dark #bot-dropdown-menu {
+  background-color: #0d1527 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7) !important;
+}
+html.dark #bot-dropdown-menu button {
+  color: #e2e8f0 !important;
+}
+html.dark #bot-dropdown-menu button:hover {
+  background-color: #19243d !important;
+}
+html.dark #bot-dropdown-menu .bg-slate-50\/70,
+html.dark #bot-dropdown-menu .bg-slate-50\/50,
+html.dark #bot-dropdown-menu [class*="bg-slate-50"] {
+  background-color: #090e1b !important;
+}
+
+/* Dropzones in Dark Mode */
+html.dark #dropzone-clicks,
+html.dark #dropzone-networks {
+  background-color: rgba(14, 22, 40, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+html.dark #dropzone-clicks:hover {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.08) !important;
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.18) !important;
+}
+html.dark #dropzone-networks:hover {
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.18) !important;
+}
+
+/* Master Table & Grid in Dark Mode */
+html.dark #section-results,
+html.dark [id*="section-results"] {
+  background-color: #0d1527 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark table thead th {
+  background-color: #070d1a !important;
+  color: #cbd5e1 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+}
+html.dark table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+html.dark table tbody tr:hover,
+html.dark .table-row-hover:hover {
+  background-color: rgba(99, 102, 241, 0.09) !important;
+}
+
+/* Badges & Highlighted Tints in Dark Mode */
+html.dark .bg-blue-50,
+html.dark [class*="bg-blue-50"],
+html.dark [class*="bg-blue-100"] {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, 0.28) !important;
+}
+html.dark .bg-emerald-50,
+html.dark [class*="bg-emerald-50"],
+html.dark [class*="bg-emerald-100"] {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+html.dark .bg-indigo-50,
+html.dark [class*="bg-indigo-50"],
+html.dark [class*="bg-indigo-100"] {
+  background-color: rgba(99, 102, 241, 0.14) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(99, 102, 241, 0.28) !important;
+}
+html.dark .bg-amber-50,
+html.dark [class*="bg-amber-50"],
+html.dark [class*="bg-amber-100"] {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+html.dark .bg-rose-50,
+html.dark [class*="bg-rose-50"],
+html.dark [class*="bg-rose-100"] {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+  color: #fda4af !important;
+  border-color: rgba(244, 63, 94, 0.28) !important;
+}
+html.dark .bg-orange-50,
+html.dark [class*="bg-orange-50"],
+html.dark [class*="bg-orange-100"] {
+  background-color: rgba(249, 115, 22, 0.14) !important;
+  color: #fdba74 !important;
+  border-color: rgba(249, 115, 22, 0.28) !important;
+}
+html.dark .bg-teal-50,
+html.dark [class*="bg-teal-50"],
+html.dark [class*="bg-teal-100"] {
+  background-color: rgba(20, 184, 166, 0.14) !important;
+  color: #5eead4 !important;
+  border-color: rgba(20, 184, 166, 0.28) !important;
+}
+html.dark .bg-purple-50,
+html.dark [class*="bg-purple-50"],
+html.dark [class*="bg-purple-100"] {
+  background-color: rgba(168, 85, 247, 0.14) !important;
+  color: #d8b4fe !important;
+  border-color: rgba(168, 85, 247, 0.28) !important;
+}
+
+/* Modals in Dark Mode */
+html.dark #modal-aliases > div:first-child,
+html.dark #modal-rules > div:first-child,
+html.dark #loading-overlay > div:first-child {
+  background-color: rgba(4, 7, 15, 0.85) !important;
+  backdrop-filter: blur(8px);
+}
+html.dark #modal-aliases .bg-white,
+html.dark #modal-rules .bg-white {
+  background-color: #0e1629 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Keyframes */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
