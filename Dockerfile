@@ -5,6 +5,7 @@ FROM mcr.microsoft.com/playwright/python:v1.48.0-jammy
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
     PORT=8000
 
 WORKDIR /app
@@ -22,6 +23,6 @@ COPY . .
 # Create volume directories for persisted reports and downloads
 RUN mkdir -p /app/backend/saved_reports /app/downloads /app/backend/sample_data
 
-EXPOSE 8000
+EXPOSE 8000 10000
 
-CMD ["sh", "-c", "uvicorn backend.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python3 -m uvicorn backend.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

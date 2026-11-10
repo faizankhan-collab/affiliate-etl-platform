@@ -2,18 +2,17 @@
 """
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MasterRow(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     brand: str = Field(..., alias="WEBSITE / BRAND")
     network: str = Field(..., alias="AFFILIATE NETWORK")
     internal_clicks: int = Field(..., alias="SUM of INTERNAL CLICKS")
     revenue: float = Field(..., alias="Revenue")
     rpcs: float = Field(..., alias="RPCs")
-
-    class Config:
-        populate_by_name = True
 
 
 class OrphanedRecord(BaseModel):
