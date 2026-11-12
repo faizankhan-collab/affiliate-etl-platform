@@ -181,6 +181,7 @@ function setupInternalClicksDropzone() {
     prompt.classList.remove("hidden");
     sessionStorage.removeItem("affiliate_clicks_info");
     FileStore.removeFile("internal_clicks");
+    inspectClicksFileDates(null);
   });
 
   function handleClicksFile(file) {
@@ -193,6 +194,131 @@ function setupInternalClicksDropzone() {
       sessionStorage.setItem("affiliate_clicks_info", JSON.stringify({ name: file.name, size: file.size }));
     } catch (e) {}
     FileStore.setFile("internal_clicks", file);
+    inspectClicksFileDates(file);
+  }
+}
+
+let internalClicksFileDates = null;
+
+function inspectClicksFileDates(file) {
+  const badgeDates = document.getElementById("clicks-file-dates");
+  const mismatchBanner = document.getElementById("clicks-date-mismatch-banner");
+
+  if (!file) {
+    internalClicksFileDates = null;
+    if (badgeDates) {
+      badgeDates.classList.add("hidden");
+      badgeDates.textContent = "";
+    }
+    if (mismatchBanner) mismatchBanner.classList.add("hidden");
+    return;
+  }
+
+  // Read first 256KB to detect date column & min/max dates
+  const slice = file.slice(0, 262144);
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length < 2) return;
+
+      const headers = lines[0]
+        .split(",")
+        .map((h) => h.trim().replace(/^["']|["']$/g, "").toLowerCase());
+      const dateColIdx = headers.findIndex(
+        (h) =>
+          h === "date" ||
+          h === "dates" ||
+          h.includes("click date") ||
+          h.includes("day date") ||
+          h.includes("order date") ||
+          h.includes("transaction date") ||
+          h.includes("tracking date")
+      );
+
+      if (dateColIdx === -1) {
+        internalClicksFileDates = null;
+        if (badgeDates) badgeDates.classList.add("hidden");
+        if (mismatchBanner) mismatchBanner.classList.add("hidden");
+        return;
+      }
+
+      const parsedDates = [];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(",");
+        if (row.length > dateColIdx) {
+          const raw = row[dateColIdx].trim().replace(/^["']|["']$/g, "");
+          if (!raw) continue;
+          if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+            parsedDates.push(raw.substring(0, 10));
+          } else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}/.test(raw)) {
+            const parts = raw.split(/[-/]/);
+            if (parts[2].length === 4) {
+              const y = parts[2];
+              const m = parts[1].padStart(2, "0");
+              const d = parts[0].padStart(2, "0");
+              parsedDates.push(`${y}-${m}-${d}`);
+            }
+          }
+        }
+      }
+
+      if (parsedDates.length === 0) {
+        internalClicksFileDates = null;
+        if (badgeDates) badgeDates.classList.add("hidden");
+        if (mismatchBanner) mismatchBanner.classList.add("hidden");
+        return;
+      }
+
+      parsedDates.sort();
+      const minDate = parsedDates[0];
+      const maxDate = parsedDates[parsedDates.length - 1];
+      internalClicksFileDates = { minDate, maxDate };
+
+      if (badgeDates) {
+        badgeDates.textContent = `📅 ${minDate} to ${maxDate}`;
+        badgeDates.classList.remove("hidden");
+      }
+
+      checkDateRangeOverlap();
+    } catch (err) {
+      console.warn("Date inspection notice:", err);
+    }
+  };
+  reader.readAsText(slice);
+}
+
+function checkDateRangeOverlap() {
+  const mismatchBanner = document.getElementById("clicks-date-mismatch-banner");
+  const mismatchDesc = document.getElementById("clicks-mismatch-desc");
+  const btnSync = document.getElementById("btn-sync-sheet-dates");
+
+  if (!internalClicksFileDates || !mismatchBanner) return;
+
+  const { start_date, end_date } = getSelectedDateRange();
+  const { minDate, maxDate } = internalClicksFileDates;
+
+  // Check overlap: max(start1, start2) <= min(end1, end2)
+  const hasOverlap = start_date <= maxDate && end_date >= minDate;
+
+  if (!hasOverlap) {
+    if (mismatchDesc) {
+      mismatchDesc.innerHTML = `Sheet contains data from <strong class="underline">${minDate} to ${maxDate}</strong>, but your active filter is <strong>${start_date} to ${end_date}</strong>. Running now will result in 0 clicks.`;
+    }
+    mismatchBanner.classList.remove("hidden");
+    if (btnSync) {
+      btnSync.onclick = () => {
+        if (dateRangePreset) dateRangePreset.value = "custom";
+        if (customDateInputs) customDateInputs.classList.remove("hidden");
+        if (inputDateStart) inputDateStart.value = minDate;
+        if (inputDateEnd) inputDateEnd.value = maxDate;
+        updateDateRangeUI();
+        mismatchBanner.classList.add("hidden");
+      };
+    }
+  } else {
+    mismatchBanner.classList.add("hidden");
   }
 }
 
@@ -421,6 +547,7 @@ function setupActionButtons() {
     if (inputDateEnd && range.end_date && dateRangePreset && dateRangePreset.value !== "custom") {
       inputDateEnd.value = range.end_date;
     }
+    checkDateRangeOverlap();
   }
 
   if (dateRangePreset) {
@@ -1280,6 +1407,7 @@ function restoreAppState() {
         if (elSize) elSize.textContent = formatBytes(storedFile.size);
         if (elPrompt) elPrompt.classList.add("hidden");
         if (elPreview) elPreview.classList.remove("hidden");
+        inspectClicksFileDates(storedFile);
       } else {
         internalClicksFile = null;
         sessionStorage.removeItem("affiliate_clicks_info");
@@ -1287,6 +1415,7 @@ function restoreAppState() {
         const elPreview = document.getElementById("clicks-preview");
         if (elPrompt) elPrompt.classList.remove("hidden");
         if (elPreview) elPreview.classList.add("hidden");
+        inspectClicksFileDates(null);
       }
     }).catch(() => {
       internalClicksFile = null;
@@ -1294,6 +1423,7 @@ function restoreAppState() {
       const elPreview = document.getElementById("clicks-preview");
       if (elPrompt) elPrompt.classList.remove("hidden");
       if (elPreview) elPreview.classList.add("hidden");
+      inspectClicksFileDates(null);
     });
   } catch (e) {
     console.warn("Storage restore error:", e);

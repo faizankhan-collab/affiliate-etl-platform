@@ -569,6 +569,34 @@ class TestAffiliateETL(unittest.TestCase):
             self.assertEqual(res["summary"]["network_processing_logs"][0]["status"], "success")
             self.assertEqual(res["summary"]["network_processing_logs"][0]["records_count"], 0)
 
+    def test_process_internal_clicks_out_of_range_raises_clear_error(self):
+        """Verify that when a date-scoped sheet has 0 rows in the active window, it raises ValueError not KeyError."""
+        df = pd.DataFrame({
+            "WEBSITE / BRAND": ["Flipkart", "Amazon"],
+            "AFFILIATE NETWORK": ["pantech", "zonet"],
+            "INTERNAL CLICKS": [1000, 2000],
+            "DATE": ["2026-10-15", "2026-10-20"],
+        })
+        # Selected range is in November, but file only has October
+        with self.assertRaises(ValueError) as ctx:
+            self.engine.process_internal_clicks(df, start_date="2026-11-01", end_date="2026-11-11")
+        self.assertIn("No internal click records found", str(ctx.exception))
+        self.assertIn("2026-10-15 to 2026-10-20", str(ctx.exception))
+        self.assertNotIn("b_key", str(ctx.exception))
+
+    def test_process_internal_clicks_all_bypassed_raises_clear_error(self):
+        """Verify that when all rows in the window are non-affiliate channels, it raises ValueError not KeyError."""
+        df = pd.DataFrame({
+            "WEBSITE / BRAND": ["Flipkart", "Amazon"],
+            "AFFILIATE NETWORK": ["Bypassed", "Add UTM Tags"],
+            "INTERNAL CLICKS": [1000, 2000],
+            "DATE": ["2026-11-05", "2026-11-06"],
+        })
+        with self.assertRaises(ValueError) as ctx:
+            self.engine.process_internal_clicks(df, start_date="2026-11-01", end_date="2026-11-11")
+        self.assertIn("No eligible affiliate click records", str(ctx.exception))
+        self.assertNotIn("b_key", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

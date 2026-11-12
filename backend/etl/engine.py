@@ -453,6 +453,19 @@ class ETLEngine:
 
                 mask = (working["_parsed_dt"] >= s_dt) & (working["_parsed_dt"] <= e_dt)
                 working = working[mask].copy()
+                if working.empty:
+                    if not valid_dts.empty:
+                        min_file_d = valid_dts.min().strftime("%Y-%m-%d")
+                        max_file_d = valid_dts.max().strftime("%Y-%m-%d")
+                        raise ValueError(
+                            f"No internal click records found for the selected date range ({start_date} to {end_date}). "
+                            f"The uploaded clicks sheet contains data from {min_file_d} to {max_file_d}. "
+                            f"Please adjust your active Date Scope to match your sheet or upload the clicks export for {start_date} to {end_date}."
+                        )
+                    else:
+                        raise ValueError(
+                            f"Date column '{date_col}' was detected, but no valid dates could be parsed from the file."
+                        )
                 is_date_filtered = True
                 date_window_str = f"{start_date} to {end_date}"
             elif working["_parsed_dt"].notna().any():
@@ -667,7 +680,23 @@ class ETLEngine:
                     }
                 )
 
-        std_df = pd.DataFrame(standardized_rows)
+        STD_COLUMNS = [
+            "row_order",
+            "std_brand",
+            "std_network",
+            "b_key",
+            "n_key",
+            "original_brand",
+            "original_network",
+            "internal_clicks",
+        ]
+        if not standardized_rows:
+            raise ValueError(
+                f"No eligible affiliate click records could be processed for the selected period ({date_window_str}). "
+                f"Please verify that the uploaded sheet contains valid affiliate traffic and brands."
+            )
+
+        std_df = pd.DataFrame(standardized_rows, columns=STD_COLUMNS)
 
         # Aggregate if duplicates exist, while preserving first original casing and order
         agg_df = (
@@ -898,17 +927,26 @@ class ETLEngine:
         # Combine all affiliate revenue tables
         if processed_network_dfs:
             combined_revenue_df = pd.concat(processed_network_dfs, ignore_index=True)
-            affiliate_agg = (
-                combined_revenue_df.groupby(["brand", "network"], as_index=False)
-                .agg(
-                    revenue=("revenue", "sum"),
-                    original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
-                    is_matched=("is_matched", "all"),
+            if (
+                not combined_revenue_df.empty
+                and "brand" in combined_revenue_df.columns
+                and "network" in combined_revenue_df.columns
+            ):
+                affiliate_agg = (
+                    combined_revenue_df.groupby(["brand", "network"], as_index=False)
+                    .agg(
+                        revenue=("revenue", "sum"),
+                        original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
+                        is_matched=("is_matched", "all"),
+                    )
                 )
-            )
-            # Add match keys for alike brand matching
-            affiliate_agg["b_key"] = affiliate_agg["brand"].apply(make_brand_match_key)
-            affiliate_agg["n_key"] = affiliate_agg["network"].apply(make_net_match_key)
+                # Add match keys for alike brand matching
+                affiliate_agg["b_key"] = affiliate_agg["brand"].apply(make_brand_match_key)
+                affiliate_agg["n_key"] = affiliate_agg["network"].apply(make_net_match_key)
+            else:
+                affiliate_agg = pd.DataFrame(
+                    columns=["brand", "network", "revenue", "original_brand", "is_matched", "b_key", "n_key"]
+                )
         else:
             affiliate_agg = pd.DataFrame(
                 columns=["brand", "network", "revenue", "original_brand", "is_matched", "b_key", "n_key"]
