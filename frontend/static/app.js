@@ -5,6 +5,76 @@ let stagedNetworkFiles = []; // Array of { file, network }
 let currentMasterData = [];
 let currentSummary = null;
 
+// Lightweight IndexedDB helper for persisting raw File objects across page reloads
+const FileStore = {
+  dbName: "AffiliateETLStorage",
+  storeName: "files",
+  openDB() {
+    return new Promise((resolve, reject) => {
+      if (typeof indexedDB === "undefined") {
+        return resolve(null);
+      }
+      const req = indexedDB.open(this.dbName, 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    });
+  },
+  async setFile(key, file) {
+    try {
+      const db = await this.openDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.storeName, "readwrite");
+        const store = tx.objectStore(this.storeName);
+        const req = store.put(file, key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(false);
+      });
+    } catch (e) {
+      console.warn("IndexedDB setFile error:", e);
+      return false;
+    }
+  },
+  async getFile(key) {
+    try {
+      const db = await this.openDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.storeName, "readonly");
+        const store = tx.objectStore(this.storeName);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      console.warn("IndexedDB getFile error:", e);
+      return null;
+    }
+  },
+  async removeFile(key) {
+    try {
+      const db = await this.openDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.storeName, "readwrite");
+        const store = tx.objectStore(this.storeName);
+        const req = store.delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(false);
+      });
+    } catch (e) {
+      console.warn("IndexedDB removeFile error:", e);
+      return false;
+    }
+  }
+};
+
 const SUPPORTED_NETWORKS = [
   { id: "auto", label: "⚡ Auto-Detect" },
   { id: "cuelinks", label: "Cuelinks" },
@@ -110,6 +180,7 @@ function setupInternalClicksDropzone() {
     preview.classList.add("hidden");
     prompt.classList.remove("hidden");
     sessionStorage.removeItem("affiliate_clicks_info");
+    FileStore.removeFile("internal_clicks");
   });
 
   function handleClicksFile(file) {
@@ -121,6 +192,7 @@ function setupInternalClicksDropzone() {
     try {
       sessionStorage.setItem("affiliate_clicks_info", JSON.stringify({ name: file.name, size: file.size }));
     } catch (e) {}
+    FileStore.setFile("internal_clicks", file);
   }
 }
 
@@ -1197,14 +1269,32 @@ function restoreAppState() {
       }
     }
 
-    const clicksInfo = sessionStorage.getItem("affiliate_clicks_info");
-    if (clicksInfo) {
-      const parsed = JSON.parse(clicksInfo);
-      document.getElementById("clicks-filename").textContent = parsed.name;
-      document.getElementById("clicks-filesize").textContent = formatBytes(parsed.size);
-      document.getElementById("clicks-prompt").classList.add("hidden");
-      document.getElementById("clicks-preview").classList.remove("hidden");
-    }
+    FileStore.getFile("internal_clicks").then((storedFile) => {
+      if (storedFile && storedFile.name) {
+        internalClicksFile = storedFile;
+        const elName = document.getElementById("clicks-filename");
+        const elSize = document.getElementById("clicks-filesize");
+        const elPrompt = document.getElementById("clicks-prompt");
+        const elPreview = document.getElementById("clicks-preview");
+        if (elName) elName.textContent = storedFile.name;
+        if (elSize) elSize.textContent = formatBytes(storedFile.size);
+        if (elPrompt) elPrompt.classList.add("hidden");
+        if (elPreview) elPreview.classList.remove("hidden");
+      } else {
+        internalClicksFile = null;
+        sessionStorage.removeItem("affiliate_clicks_info");
+        const elPrompt = document.getElementById("clicks-prompt");
+        const elPreview = document.getElementById("clicks-preview");
+        if (elPrompt) elPrompt.classList.remove("hidden");
+        if (elPreview) elPreview.classList.add("hidden");
+      }
+    }).catch(() => {
+      internalClicksFile = null;
+      const elPrompt = document.getElementById("clicks-prompt");
+      const elPreview = document.getElementById("clicks-preview");
+      if (elPrompt) elPrompt.classList.remove("hidden");
+      if (elPreview) elPreview.classList.add("hidden");
+    });
   } catch (e) {
     console.warn("Storage restore error:", e);
   }
