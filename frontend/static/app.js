@@ -909,11 +909,12 @@ function setupActionButtons() {
 let currentReportId = null;
 
 function triggerExportExcel() {
-  if (!currentMasterData.length) return;
+  const rows = (currentRenderedRows && currentRenderedRows.length) ? currentRenderedRows : currentMasterData;
+  if (!rows.length) return;
   fetch("/api/export/excel", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(currentMasterData),
+    body: JSON.stringify(rows),
   })
     .then((res) => {
       if (!res.ok) throw new Error("Excel export failed");
@@ -926,11 +927,12 @@ function triggerExportExcel() {
 }
 
 function triggerExportCsv() {
-  if (!currentMasterData.length) return;
+  const rows = (currentRenderedRows && currentRenderedRows.length) ? currentRenderedRows : currentMasterData;
+  if (!rows.length) return;
   fetch("/api/export/csv", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(currentMasterData),
+    body: JSON.stringify(rows),
   })
     .then((res) => {
       if (!res.ok) throw new Error("CSV export failed");
@@ -943,7 +945,8 @@ function triggerExportCsv() {
 }
 
 function triggerCopyTsv(feedbackElId = "copy-text") {
-  if (!currentMasterData.length) return;
+  const rows = (currentRenderedRows && currentRenderedRows.length) ? currentRenderedRows : currentMasterData;
+  if (!rows.length) return;
   const headers = [
     "WEBSITE / BRAND",
     "AFFILIATE NETWORK",
@@ -952,7 +955,7 @@ function triggerCopyTsv(feedbackElId = "copy-text") {
     "RPCs",
   ];
   let tsv = headers.join("\t") + "\n";
-  currentMasterData.forEach((row) => {
+  rows.forEach((row) => {
     tsv += [
       row["WEBSITE / BRAND"],
       row["AFFILIATE NETWORK"],
@@ -1158,7 +1161,7 @@ async function openSavedReport(reportId) {
     );
 
     renderKPIs(currentSummary);
-    renderMasterTable(currentMasterData);
+    applyTableFiltersAndSort();
     if (currentSummary.network_processing_logs) {
       renderProcessingLogs(currentSummary.network_processing_logs);
     }
@@ -1385,7 +1388,7 @@ function restoreAppState() {
       currentMasterData = JSON.parse(savedData);
       currentSummary = savedSummary ? JSON.parse(savedSummary) : {};
       renderKPIs(currentSummary);
-      renderMasterTable(currentMasterData);
+      applyTableFiltersAndSort();
       if (currentSummary.network_processing_logs) {
         renderProcessingLogs(currentSummary.network_processing_logs);
       }
@@ -1437,7 +1440,7 @@ function handleSuccessResults(response) {
   saveAppState();
 
   renderKPIs(currentSummary);
-  renderMasterTable(currentMasterData);
+  applyTableFiltersAndSort();
   renderProcessingLogs(currentSummary.network_processing_logs || []);
 
   const badgeDates = document.getElementById("badge-table-dates");
@@ -1550,11 +1553,229 @@ function renderKPIs(summary) {
   }
 }
 
-function renderMasterTable(rows) {
+let tableSortKey = "default";
+let tableFilterPreset = "all";
+let tableSearchQuery = "";
+let currentRenderedRows = [];
+
+function applyTableFiltersAndSort() {
+  if (!Array.isArray(currentMasterData)) return;
+
+  let rows = [...currentMasterData];
+
+  // 1. Text Search Filter
+  if (tableSearchQuery) {
+    const q = tableSearchQuery.toLowerCase().trim();
+    rows = rows.filter((r) => {
+      const b = String(r["WEBSITE / BRAND"] || "").toLowerCase();
+      const n = String(r["AFFILIATE NETWORK"] || "").toLowerCase();
+      return b.includes(q) || n.includes(q);
+    });
+  }
+
+  // 2. Preset Filter Chips
+  if (tableFilterPreset === "revenue") {
+    rows = rows.filter((r) => (Number(r["Revenue"]) || 0) > 0);
+  } else if (tableFilterPreset === "bleed") {
+    rows = rows.filter(
+      (r) =>
+        (Number(r["SUM of INTERNAL CLICKS"]) || 0) >= 500 &&
+        (Number(r["Revenue"]) || 0) <= 0
+    );
+  } else if (tableFilterPreset === "high-rpc") {
+    rows = rows.filter((r) => (Number(r["RPCs"]) || 0) >= 0.10);
+  }
+
+  // 3. Sorting
+  if (tableSortKey === "rpc-desc") {
+    rows.sort((a, b) => (Number(b["RPCs"]) || 0) - (Number(a["RPCs"]) || 0));
+  } else if (tableSortKey === "rpc-asc") {
+    rows.sort((a, b) => (Number(a["RPCs"]) || 0) - (Number(b["RPCs"]) || 0));
+  } else if (tableSortKey === "rev-desc") {
+    rows.sort((a, b) => (Number(b["Revenue"]) || 0) - (Number(a["Revenue"]) || 0));
+  } else if (tableSortKey === "rev-asc") {
+    rows.sort((a, b) => (Number(a["Revenue"]) || 0) - (Number(b["Revenue"]) || 0));
+  } else if (tableSortKey === "clicks-desc") {
+    rows.sort(
+      (a, b) =>
+        (Number(b["SUM of INTERNAL CLICKS"]) || 0) -
+        (Number(a["SUM of INTERNAL CLICKS"]) || 0)
+    );
+  } else if (tableSortKey === "clicks-asc") {
+    rows.sort(
+      (a, b) =>
+        (Number(a["SUM of INTERNAL CLICKS"]) || 0) -
+        (Number(b["SUM of INTERNAL CLICKS"]) || 0)
+    );
+  } else if (tableSortKey === "brand-asc") {
+    rows.sort((a, b) =>
+      String(a["WEBSITE / BRAND"] || "").localeCompare(
+        String(b["WEBSITE / BRAND"] || "")
+      )
+    );
+  } else if (tableSortKey === "brand-desc") {
+    rows.sort((a, b) =>
+      String(b["WEBSITE / BRAND"] || "").localeCompare(
+        String(a["WEBSITE / BRAND"] || "")
+      )
+    );
+  } else if (tableSortKey === "network-asc") {
+    rows.sort((a, b) =>
+      String(a["AFFILIATE NETWORK"] || "").localeCompare(
+        String(b["AFFILIATE NETWORK"] || "")
+      )
+    );
+  } else if (tableSortKey === "network-desc") {
+    rows.sort((a, b) =>
+      String(b["AFFILIATE NETWORK"] || "").localeCompare(
+        String(a["AFFILIATE NETWORK"] || "")
+      )
+    );
+  }
+
+  currentRenderedRows = rows;
+  updateSortHeaderIndicators();
+  renderMasterTable(rows, currentMasterData.length);
+}
+
+function updateSortHeaderIndicators() {
+  const headers = document.querySelectorAll("th[data-sort-col]");
+  headers.forEach((th) => {
+    const col = th.getAttribute("data-sort-col");
+    const indicator = th.querySelector(".sort-indicator");
+    if (!indicator) return;
+
+    const isActive =
+      (col === "rpc" && (tableSortKey === "rpc-desc" || tableSortKey === "rpc-asc")) ||
+      (col === "revenue" && (tableSortKey === "rev-desc" || tableSortKey === "rev-asc")) ||
+      (col === "clicks" && (tableSortKey === "clicks-desc" || tableSortKey === "clicks-asc")) ||
+      (col === "brand" && (tableSortKey === "brand-asc" || tableSortKey === "brand-desc")) ||
+      (col === "network" && (tableSortKey === "network-asc" || tableSortKey === "network-desc"));
+
+    if (isActive) {
+      const isDesc = tableSortKey.endsWith("-desc");
+      indicator.textContent = isDesc ? "↓" : "↑";
+      indicator.className =
+        "sort-indicator text-xs font-bold text-emerald-600 dark:text-emerald-400";
+      th.classList.add("text-emerald-600", "dark:text-emerald-400");
+    } else {
+      indicator.textContent = "↕";
+      indicator.className =
+        "sort-indicator text-[10px] text-slate-400 dark:text-slate-600";
+      th.classList.remove("text-emerald-600", "dark:text-emerald-400");
+    }
+  });
+
+  const selectSort = document.getElementById("select-table-sort");
+  if (selectSort && selectSort.value !== tableSortKey) {
+    selectSort.value = tableSortKey;
+  }
+}
+
+function handleColumnHeaderSort(col) {
+  if (col === "original") {
+    tableSortKey = "default";
+  } else if (col === "rpc") {
+    tableSortKey =
+      tableSortKey === "rpc-desc"
+        ? "rpc-asc"
+        : tableSortKey === "rpc-asc"
+        ? "default"
+        : "rpc-desc";
+  } else if (col === "revenue") {
+    tableSortKey =
+      tableSortKey === "rev-desc"
+        ? "rev-asc"
+        : tableSortKey === "rev-asc"
+        ? "default"
+        : "rev-desc";
+  } else if (col === "clicks") {
+    tableSortKey =
+      tableSortKey === "clicks-desc"
+        ? "clicks-asc"
+        : tableSortKey === "clicks-asc"
+        ? "default"
+        : "clicks-desc";
+  } else if (col === "brand") {
+    tableSortKey =
+      tableSortKey === "brand-asc"
+        ? "brand-desc"
+        : tableSortKey === "brand-desc"
+        ? "default"
+        : "brand-asc";
+  } else if (col === "network") {
+    tableSortKey =
+      tableSortKey === "network-asc"
+        ? "network-desc"
+        : tableSortKey === "network-desc"
+        ? "default"
+        : "network-asc";
+  }
+  applyTableFiltersAndSort();
+}
+
+function handleFilterChipClick(filter) {
+  tableFilterPreset = filter;
+  const chipButtons = document.querySelectorAll(".table-filter-btn");
+  chipButtons.forEach((btn) => {
+    if (btn.getAttribute("data-filter") === filter) {
+      btn.className =
+        "table-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-2xs transition cursor-pointer";
+    } else {
+      btn.className =
+        "table-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition cursor-pointer";
+    }
+  });
+  applyTableFiltersAndSort();
+}
+
+function renderMasterTable(rows, totalCount) {
   const tbody = document.getElementById("master-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
-  document.getElementById("table-row-count").textContent = `Showing ${rows.length} rows`;
+  const countEl = document.getElementById("table-row-count");
+  if (countEl) {
+    const total = totalCount || (currentMasterData ? currentMasterData.length : rows.length);
+    let label = `Showing ${rows.length} of ${total} rows`;
+    if (tableFilterPreset !== "all") {
+      const filterLabels = {
+        revenue: "Revenue > 0",
+        bleed: "Click Bleed (Rev = ₹0)",
+        "high-rpc": "High RPC (≥ ₹0.10)",
+      };
+      label += ` • Filter: ${filterLabels[tableFilterPreset] || tableFilterPreset}`;
+    }
+    if (tableSortKey !== "default") {
+      const sortLabels = {
+        "rpc-desc": "RPCs (High → Low)",
+        "rpc-asc": "RPCs (Low → High)",
+        "rev-desc": "Revenue (High → Low)",
+        "rev-asc": "Revenue (Low → High)",
+        "clicks-desc": "Clicks (High → Low)",
+        "clicks-asc": "Clicks (Low → High)",
+        "brand-asc": "Brand (A → Z)",
+        "brand-desc": "Brand (Z → A)",
+        "network-asc": "Network (A → Z)",
+        "network-desc": "Network (Z → A)",
+      };
+      label += ` • Sort: ${sortLabels[tableSortKey] || tableSortKey}`;
+    }
+    countEl.textContent = label;
+  }
+
+  if (rows.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td colspan="6" class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
+        <i class="ph-bold ph-funnel-x text-2xl mb-1 inline-block text-slate-300 dark:text-slate-600"></i>
+        <p class="font-medium">No matching campaigns found</p>
+        <p class="text-[11px] mt-0.5 text-slate-400 dark:text-slate-500">Try clearing filters or search query.</p>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    return;
+  }
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
@@ -1631,18 +1852,35 @@ function renderProcessingLogs(logs) {
 // 4. Search and Table Filtering
 function setupSearchAndFilters() {
   const searchInput = document.getElementById("search-table");
-  searchInput.addEventListener("input", (e) => {
-    const q = e.target.value.toLowerCase().trim();
-    if (!q) {
-      renderMasterTable(currentMasterData);
-      return;
-    }
-    const filtered = currentMasterData.filter((r) => {
-      const b = (r["WEBSITE / BRAND"] || "").toLowerCase();
-      const n = (r["AFFILIATE NETWORK"] || "").toLowerCase();
-      return b.includes(q) || n.includes(q);
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      tableSearchQuery = e.target.value;
+      applyTableFiltersAndSort();
     });
-    renderMasterTable(filtered);
+  }
+
+  const selectSort = document.getElementById("select-table-sort");
+  if (selectSort) {
+    selectSort.addEventListener("change", (e) => {
+      tableSortKey = e.target.value;
+      applyTableFiltersAndSort();
+    });
+  }
+
+  const filterChips = document.querySelectorAll(".table-filter-btn");
+  filterChips.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const f = btn.getAttribute("data-filter");
+      handleFilterChipClick(f);
+    });
+  });
+
+  const sortableHeaders = document.querySelectorAll("th[data-sort-col]");
+  sortableHeaders.forEach((th) => {
+    th.addEventListener("click", () => {
+      const col = th.getAttribute("data-sort-col");
+      handleColumnHeaderSort(col);
+    });
   });
 }
 

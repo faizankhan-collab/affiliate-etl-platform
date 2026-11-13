@@ -639,17 +639,80 @@
           </div>
         </div>
 
+        <!-- Filter Chips & Sorting Toolbar -->
+        <div class="px-5 py-2.5 bg-slate-50/80 dark:bg-[#070e1c] border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <!-- Filter Presets -->
+          <div class="flex flex-wrap items-center gap-1.5" id="table-filter-chips">
+            <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Filter:</span>
+            <button type="button" data-filter="all" class="table-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-2xs transition">
+              All
+            </button>
+            <button type="button" data-filter="revenue" class="table-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition">
+              💰 Revenue > 0
+            </button>
+            <button type="button" data-filter="bleed" class="table-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 transition" title="Clicks ≥ 500 with ₹0 Revenue">
+              🚨 Click Bleed (Rev = ₹0)
+            </button>
+            <button type="button" data-filter="high-rpc" class="table-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700 transition" title="RPC ≥ ₹0.10">
+              ⚡ High RPC (≥ ₹0.10)
+            </button>
+          </div>
+
+          <!-- Sort Select Dropdown -->
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sort:</span>
+            <select id="select-table-sort" class="px-2.5 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer">
+              <option value="default">Default Order</option>
+              <option value="rpc-desc">RPCs: High → Low (Descending)</option>
+              <option value="rpc-asc">RPCs: Low → High (Ascending)</option>
+              <option value="rev-desc">Revenue: High → Low (Descending)</option>
+              <option value="rev-asc">Revenue: Low → High (Ascending)</option>
+              <option value="clicks-desc">Clicks: High → Low (Descending)</option>
+              <option value="clicks-asc">Clicks: Low → High (Ascending)</option>
+              <option value="brand-asc">Brand: A → Z</option>
+              <option value="brand-desc">Brand: Z → A</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Master Data Table -->
         <div class="overflow-x-auto max-h-[550px]">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-emerald-50/70 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold sticky top-0 border-b border-slate-200 dark:border-slate-800 z-10 backdrop-blur-xs">
+            <thead class="bg-emerald-50/70 dark:bg-[#070d1a] text-slate-700 dark:text-slate-200 font-semibold sticky top-0 border-b border-slate-200 dark:border-slate-800 z-10 backdrop-blur-xs select-none">
               <tr>
-                <th class="py-3 px-4 w-12 text-center text-slate-400">#</th>
-                <th class="py-3 px-4">WEBSITE / BRAND</th>
-                <th class="py-3 px-4">AFFILIATE NETWORK</th>
-                <th class="py-3 px-4 text-right">SUM of INTERNAL CLICKS</th>
-                <th class="py-3 px-4 text-right">Revenue (₹)</th>
-                <th class="py-3 px-4 text-right font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40">RPCs</th>
+                <th class="py-3 px-4 w-12 text-center text-slate-400 cursor-pointer hover:text-slate-200 transition" data-sort-col="original" title="Click to reset to default order">
+                  <span>#</span> <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="brand" title="Click to sort by Brand Name">
+                  <div class="inline-flex items-center gap-1.5">
+                    <span>WEBSITE / BRAND</span>
+                    <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                  </div>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="network" title="Click to sort by Affiliate Network">
+                  <div class="inline-flex items-center gap-1.5">
+                    <span>AFFILIATE NETWORK</span>
+                    <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                  </div>
+                </th>
+                <th class="py-3 px-4 text-right cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="clicks" title="Click to sort by Internal Clicks">
+                  <div class="inline-flex items-center justify-end gap-1.5 w-full">
+                    <span>SUM of INTERNAL CLICKS</span>
+                    <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                  </div>
+                </th>
+                <th class="py-3 px-4 text-right cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="revenue" title="Click to sort by Revenue">
+                  <div class="inline-flex items-center justify-end gap-1.5 w-full">
+                    <span>Revenue (₹)</span>
+                    <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                  </div>
+                </th>
+                <th class="py-3 px-4 text-right font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40 cursor-pointer hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 transition" data-sort-col="rpc" title="Click to sort by RPC (Revenue Per Click)">
+                  <div class="inline-flex items-center justify-end gap-1.5 w-full">
+                    <span>RPCs</span>
+                    <span class="sort-indicator text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">↕</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody id="master-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200 font-mono">
@@ -1221,6 +1284,6 @@
   </div>
 
   <script src="/static/analytics.js?v=3.9"></script>
-  <script src="/static/app.js?v=4.0"></script>
+  <script src="/static/app.js?v=4.1"></script>
 </body>
 </html>
