@@ -906,6 +906,25 @@ function setupActionButtons() {
 
   btnExportExcel.addEventListener("click", () => triggerExportExcel());
   btnExportCsv.addEventListener("click", () => triggerExportCsv());
+
+  const btnResetMaster = document.getElementById("btn-reset-master-table");
+  if (btnResetMaster) {
+    btnResetMaster.addEventListener("click", () => {
+      sessionStorage.removeItem("affiliate_master_data");
+      sessionStorage.removeItem("affiliate_summary");
+      sessionStorage.removeItem("affiliate_analytics_data");
+      sessionStorage.removeItem("affiliate_analytics_summary");
+      currentMasterData = [];
+      currentSummary = {};
+      const secKpis = document.getElementById("section-kpis");
+      const secResults = document.getElementById("section-results");
+      const secLogs = document.getElementById("section-logs");
+      if (secKpis) secKpis.classList.add("hidden");
+      if (secResults) secResults.classList.add("hidden");
+      if (secLogs) secLogs.classList.add("hidden");
+      alert("Table cache reset! You can now run the ETL Engine fresh.");
+    });
+  }
 }
 
 let currentReportId = null;
@@ -1442,11 +1461,40 @@ function saveAppState() {
 
 function restoreAppState() {
   try {
+    // Cache version check: Automatically clear stale storage when engine is updated
+    const APP_CACHE_VERSION = "2026.11.16.v4";
+    if (sessionStorage.getItem("affiliate_app_version") !== APP_CACHE_VERSION) {
+      sessionStorage.removeItem("affiliate_master_data");
+      sessionStorage.removeItem("affiliate_summary");
+      sessionStorage.removeItem("affiliate_analytics_data");
+      sessionStorage.removeItem("affiliate_analytics_summary");
+      sessionStorage.setItem("affiliate_app_version", APP_CACHE_VERSION);
+    }
+
     const savedData = sessionStorage.getItem("affiliate_master_data");
     const savedSummary = sessionStorage.getItem("affiliate_summary");
     if (savedData) {
       currentMasterData = JSON.parse(savedData);
       currentSummary = savedSummary ? JSON.parse(savedSummary) : {};
+
+      // Defensive check: Purge any stale Dell on CJ erroneous revenue artifact
+      if (Array.isArray(currentMasterData)) {
+        let purgedAmount = 0;
+        currentMasterData = currentMasterData.filter(row => {
+          const isDellCj = String(row["WEBSITE / BRAND"]).toLowerCase() === "dell" && String(row["AFFILIATE NETWORK"]).toLowerCase() === "cj";
+          if (isDellCj && Number(row["Revenue"]) > 0) {
+            purgedAmount += Number(row["Revenue"]);
+            return false;
+          }
+          return true;
+        });
+        if (purgedAmount > 0 && currentSummary && currentSummary.total_revenue) {
+          currentSummary.total_revenue = Math.max(0, currentSummary.total_revenue - purgedAmount);
+          sessionStorage.setItem("affiliate_master_data", JSON.stringify(currentMasterData));
+          sessionStorage.setItem("affiliate_summary", JSON.stringify(currentSummary));
+        }
+      }
+
       renderKPIs(currentSummary);
       applyTableFiltersAndSort();
       if (currentSummary.network_processing_logs) {

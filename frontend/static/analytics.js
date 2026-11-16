@@ -88,6 +88,13 @@ async function loadAnalyticsData(forceRefresh = false) {
   showLoading(true);
 
   try {
+    const APP_CACHE_VERSION = "2026.11.16.v4";
+    if (sessionStorage.getItem("affiliate_app_version") !== APP_CACHE_VERSION) {
+      sessionStorage.removeItem("affiliate_analytics_data");
+      sessionStorage.removeItem("affiliate_analytics_summary");
+      sessionStorage.setItem("affiliate_app_version", APP_CACHE_VERSION);
+    }
+
     let sessionData = null;
     if (!forceRefresh) {
       try {
@@ -101,7 +108,7 @@ async function loadAnalyticsData(forceRefresh = false) {
     }
 
     if (sessionData && Array.isArray(sessionData) && sessionData.length > 0) {
-      rawMasterData = sessionData;
+      rawMasterData = sessionData.filter(row => !(String(row["WEBSITE / BRAND"]).toLowerCase() === "dell" && String(row["AFFILIATE NETWORK"]).toLowerCase() === "cj" && Number(row["Revenue"]) > 0));
       document.getElementById("header-data-indicator").textContent = `Loaded from Session (${rawMasterData.length} records)`;
     } else {
       // Fetch latest from API
