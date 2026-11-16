@@ -83,14 +83,49 @@
           <i class="ph-bold ph-chart-line-up text-sm"></i>
           <span>Advanced Analytics</span>
         </button>
-        <button id="btn-open-rules" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/70 transition">
-          <i class="ph ph-gear text-sm"></i>
-          <span>Brand Aliases</span>
+        <button id="nav-btn-campaign-finder" type="button" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 rounded-xl transition shadow-md shadow-purple-500/25 cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <i class="ph-bold ph-radar text-sm animate-pulse"></i>
+          <span>Universal Campaign Finder</span>
+          <span class="inline-flex items-center px-1.5 py-0.2 rounded-md text-[9px] font-black bg-white/20 text-white tracking-wider uppercase">Live</span>
         </button>
-        <button id="btn-load-demo" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-xs">
-          <i class="ph-bold ph-magic-wand text-sm"></i>
-          <span>Load Demo Data</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. Header: Universal Campaign Finder Mode -->
+  <header id="header-campaigns-nav" class="hidden bg-white/95 dark:bg-[#0d1424]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 sticky top-0 z-30 shadow-xs dark:shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Back to Master Sheet Button -->
+        <button id="btn-campaigns-back-to-master" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <i class="ph-bold ph-arrow-left text-sm"></i>
+          <span>← Back to Master Sheet</span>
         </button>
+        <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-pink-500/20">
+          <i class="ph-bold ph-radar text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-slate-900 dark:text-white leading-tight flex items-center space-x-2">
+            <span>Universal Affiliate Campaign Finder</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-100 dark:bg-pink-900/60 text-pink-700 dark:text-pink-300 uppercase tracking-wide">Live Catalog</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Search & compare live offers, payouts, and availability across all 8 affiliate networks</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Theme Toggle Button (Campaigns) -->
+        <button id="btn-theme-toggle-campaigns" type="button" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-700/80 bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 shadow-2xs" title="Toggle Light / Dark Mode">
+          <i class="theme-toggle-icon ph-bold ph-moon-stars text-amber-400 text-sm"></i>
+          <span class="theme-toggle-label">Dark Mode</span>
+        </button>
+
+        <!-- Networks Status Indicator -->
+        <div class="hidden sm:flex items-center space-x-1.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="campaigns-networks-badge" class="font-medium">8 Networks Connected</span>
+        </div>
       </div>
     </div>
   </header>
@@ -1250,6 +1285,211 @@
 
     </div>
 
+    <!-- 4. VIEW: Universal Affiliate Campaign Finder Page -->
+    <div id="view-campaigns" class="hidden space-y-6">
+
+      <!-- Hero Search Section -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/30 p-6 sm:p-8 shadow-2xl shadow-indigo-950/50">
+        <!-- Background Ambient Glow -->
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 space-y-5">
+          <!-- Top Badge & Heading -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold bg-pink-500/15 text-pink-400 border border-pink-500/30">
+                <i class="ph-bold ph-radar animate-pulse text-sm"></i>
+                <span>Cross-Network Arbitrage & Offer Discovery</span>
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">
+                Universal Affiliate Campaign Finder
+              </h2>
+              <p class="text-sm text-slate-300 mt-1 max-w-3xl">
+                Search brands, compare live payout commissions across all 8 affiliate networks, and apply in 1 click. Never send traffic to a lower-paying network again.
+              </p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400 font-medium">Catalog:</span>
+              <span id="catalog-total-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                50+ Live Offers
+              </span>
+            </div>
+          </div>
+
+          <!-- Hero Search Box -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
+              <i class="ph-bold ph-magnifying-glass text-xl"></i>
+            </div>
+            <input
+              id="campaign-search-input"
+              type="text"
+              placeholder="Search any brand or campaign (e.g. Amazon, Nike, Ajio, Puma, Samsung, Flipkart, MakeMyTrip...)"
+              class="w-full pl-12 pr-12 py-3.5 text-sm sm:text-base bg-slate-900/90 dark:bg-[#070b14]/95 text-white placeholder-slate-400 border border-indigo-500/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition shadow-inner"
+            />
+            <button
+              id="btn-clear-campaign-search"
+              type="button"
+              class="hidden absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white transition cursor-pointer"
+              title="Clear search"
+            >
+              <i class="ph-bold ph-x-circle text-xl"></i>
+            </button>
+          </div>
+
+          <!-- Quick Brand Chips -->
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <span class="text-xs font-semibold text-slate-400 mr-1 flex items-center space-x-1">
+              <i class="ph-bold ph-fire text-amber-400"></i>
+              <span>Popular Brands:</span>
+            </span>
+            <div id="quick-brand-chips" class="flex flex-wrap gap-1.5">
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Amazon">Amazon</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Flipkart">Flipkart</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Myntra">Myntra</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Ajio">Ajio</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Samsung">Samsung</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nike">Nike</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Puma">Puma</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Tata CliQ">Tata CliQ</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nykaa">Nykaa</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="MakeMyTrip">MakeMyTrip</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="SBI Card">SBI Card</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Hostinger">Hostinger</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Network Filter Tabs & Sub-Filters -->
+      <div class="space-y-3">
+        <!-- Network Pills Bar -->
+        <div class="flex items-center justify-between pb-1">
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+            <i class="ph-bold ph-funnel text-indigo-500"></i>
+            <span>Browse by Network (Click to view all campaigns on that network)</span>
+          </p>
+          <span id="active-network-name-badge" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+            Showing: All Networks
+          </span>
+        </div>
+
+        <div id="campaign-network-pills" class="flex flex-wrap gap-2">
+          <!-- Dynamically populated or static pills -->
+          <button type="button" class="network-pill active px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer border border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/30" data-network="all">
+            🌐 All Networks <span class="ml-1 opacity-80">(51)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-400" data-network="cuelinks">
+            🔗 Cuelinks <span class="ml-1 text-slate-400">(17)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-emerald-500 hover:text-emerald-400" data-network="admitad">
+            🛡️ Admitad <span class="ml-1 text-slate-400">(11)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-purple-500 hover:text-purple-400" data-network="inrdeals">
+            ₹ INRDeals <span class="ml-1 text-slate-400">(8)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-amber-500 hover:text-amber-400" data-network="cj">
+            ⚡ CJ Affiliate <span class="ml-1 text-slate-400">(5)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-rose-500 hover:text-rose-400" data-network="cashkaro">
+            👛 CashKaro <span class="ml-1 text-slate-400">(2)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-teal-500 hover:text-teal-400" data-network="icubeswire">
+            🧊 iCubesWire <span class="ml-1 text-slate-400">(3)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-cyan-500 hover:text-cyan-400" data-network="pantech">
+            ⚙️ Pantech <span class="ml-1 text-slate-400">(3)</span>
+          </button>
+          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-400" data-network="zonet">
+            📊 Zonet <span class="ml-1 text-slate-400">(2)</span>
+          </button>
+        </div>
+
+        <!-- Filter Dropdowns Row -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1 border-t border-slate-200 dark:border-slate-800/80">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Category Filter -->
+            <select id="select-campaign-category" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+              <option value="all">All Categories</option>
+              <option value="Marketplace">Marketplaces</option>
+              <option value="Fashion">Fashion & Apparel</option>
+              <option value="Electronics">Electronics & Gadgets</option>
+              <option value="Sports & Footwear">Sports & Footwear</option>
+              <option value="Beauty & Health">Beauty & Health</option>
+              <option value="Travel">Travel & Bookings</option>
+              <option value="Finance & Cards">Finance & Credit Cards</option>
+              <option value="Tech & Software">Tech & Software</option>
+              <option value="Food & Dining">Food & Dining</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select id="select-campaign-status" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+              <option value="all">All Statuses</option>
+              <option value="active">🟢 Live / Active</option>
+              <option value="apply_required">🟡 Application Required</option>
+              <option value="paused">🔴 Paused</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <!-- Sort By -->
+            <span class="text-xs text-slate-500 dark:text-slate-400">Sort:</span>
+            <select id="select-campaign-sort" class="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+              <option value="payout_desc">🏆 Highest Payout First</option>
+              <option value="name_asc">🔤 Brand Name (A-Z)</option>
+              <option value="network_asc">🌐 Network Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparative Insight Callout (Dynamically rendered if brand has competing networks) -->
+      <div id="campaign-compare-callout" class="hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-teal-950/30 to-indigo-950/40 border border-emerald-500/30 shadow-lg">
+        <div class="flex items-start space-x-3">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <i class="ph-bold ph-trend-up text-lg"></i>
+          </div>
+          <div>
+            <h4 id="compare-callout-title" class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Commission Arbitrage Winner</h4>
+            <p id="compare-callout-desc" class="text-sm font-medium text-slate-200 mt-0.5">
+              <!-- Dynamically populated -->
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Stats Header -->
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span id="campaign-results-count">Showing 51 campaigns across 8 networks</span>
+        <button id="btn-reset-campaign-filters" type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium cursor-pointer">
+          Reset all filters
+        </button>
+      </div>
+
+      <!-- Campaign Cards Grid -->
+      <div id="campaign-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <!-- Dynamically populated via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="campaign-empty-state" class="hidden py-16 text-center space-y-4 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+          <i class="ph-bold ph-magnifying-glass text-3xl"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No campaigns found</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            Try adjusting your search query, selecting another network, or clearing filters.
+          </p>
+        </div>
+        <button type="button" id="btn-empty-reset" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition cursor-pointer">
+          Show All Campaigns
+        </button>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Modal: Brand Mapping Aliases -->
@@ -1284,6 +1524,6 @@
   </div>
 
   <script src="/static/analytics.js?v=3.9"></script>
-  <script src="/static/app.js?v=4.1"></script>
+  <script src="/static/app.js?v=4.2"></script>
 </body>
 </html>

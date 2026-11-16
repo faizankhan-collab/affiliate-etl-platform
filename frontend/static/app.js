@@ -856,21 +856,23 @@ function setupActionButtons() {
     }
   });
 
-  btnLoadDemo.addEventListener("click", async () => {
-    const { start_date, end_date, label, days } = getSelectedDateRange();
-    setLoading(true, `Loading verified demo datasets for ${label} (${days} days)...`);
-    try {
-      const url = `/api/process-demo?start_date=${encodeURIComponent(start_date)}&end_date=${encodeURIComponent(end_date)}`;
-      const res = await fetch(url, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to load demo data");
-      handleSuccessResults(data);
-    } catch (err) {
-      alert("Error loading demo data: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  });
+  if (btnLoadDemo) {
+    btnLoadDemo.addEventListener("click", async () => {
+      const { start_date, end_date, label, days } = getSelectedDateRange();
+      setLoading(true, `Loading verified demo datasets for ${label} (${days} days)...`);
+      try {
+        const url = `/api/process-demo?start_date=${encodeURIComponent(start_date)}&end_date=${encodeURIComponent(end_date)}`;
+        const res = await fetch(url, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to load demo data");
+        handleSuccessResults(data);
+      } catch (err) {
+        alert("Error loading demo data: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    });
+  }
 
   btnCopyTsv.addEventListener("click", () => {
     if (!currentMasterData.length) return;
@@ -1211,13 +1213,36 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
   const viewMaster = document.getElementById("view-master");
   const viewReport = document.getElementById("view-report");
   const viewAnalytics = document.getElementById("view-analytics");
+  const viewCampaigns = document.getElementById("view-campaigns");
   const headerMaster = document.getElementById("header-master-nav");
   const headerAnalytics = document.getElementById("header-analytics-nav");
+  const headerCampaigns = document.getElementById("header-campaigns-nav");
 
-  if (viewName === "analytics") {
+  if (viewName === "campaigns") {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
+    if (viewAnalytics) viewAnalytics.classList.add("hidden");
     if (headerMaster) headerMaster.classList.add("hidden");
+    if (headerAnalytics) headerAnalytics.classList.add("hidden");
+
+    if (viewCampaigns) viewCampaigns.classList.remove("hidden");
+    if (headerCampaigns) headerCampaigns.classList.remove("hidden");
+
+    if (pushHistory) {
+      history.pushState({ view: "campaigns" }, "", "/campaigns");
+    }
+
+    if (window.initCampaignFinder) {
+      window.initCampaignFinder();
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (viewName === "analytics") {
+    if (viewMaster) viewMaster.classList.add("hidden");
+    if (viewReport) viewReport.classList.add("hidden");
+    if (viewCampaigns) viewCampaigns.classList.add("hidden");
+    if (headerMaster) headerMaster.classList.add("hidden");
+    if (headerCampaigns) headerCampaigns.classList.add("hidden");
+
     if (viewAnalytics) viewAnalytics.classList.remove("hidden");
     if (headerAnalytics) headerAnalytics.classList.remove("hidden");
 
@@ -1232,7 +1257,10 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
   } else if (viewName === "report") {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewAnalytics) viewAnalytics.classList.add("hidden");
+    if (viewCampaigns) viewCampaigns.classList.add("hidden");
     if (headerAnalytics) headerAnalytics.classList.add("hidden");
+    if (headerCampaigns) headerCampaigns.classList.add("hidden");
+
     if (viewReport) viewReport.classList.remove("hidden");
     if (headerMaster) headerMaster.classList.remove("hidden");
 
@@ -1245,7 +1273,10 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
     // Switch to master
     if (viewAnalytics) viewAnalytics.classList.add("hidden");
     if (headerAnalytics) headerAnalytics.classList.add("hidden");
+    if (viewCampaigns) viewCampaigns.classList.add("hidden");
+    if (headerCampaigns) headerCampaigns.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
+
     if (viewMaster) viewMaster.classList.remove("hidden");
     if (headerMaster) headerMaster.classList.remove("hidden");
 
@@ -1261,7 +1292,9 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
 function setupRoutingAndHistory() {
   const btnOpenAnalytics = document.getElementById("btn-open-analytics");
   const navBtnAnalytics = document.getElementById("nav-btn-analytics");
+  const navBtnCampaignFinder = document.getElementById("nav-btn-campaign-finder");
   const btnBackToMaster = document.getElementById("btn-back-to-master");
+  const btnCampaignsBackToMaster = document.getElementById("btn-campaigns-back-to-master");
   const btnBackFromReport = document.getElementById("btn-back-from-report");
   const btnReportAnalytics = document.getElementById("btn-report-analytics");
   const btnReportCopyTsv = document.getElementById("btn-report-copy-tsv");
@@ -1269,6 +1302,7 @@ function setupRoutingAndHistory() {
   const btnReportExportCsv = document.getElementById("btn-report-export-csv");
   const btnReportDelete = document.getElementById("btn-report-delete");
   const btnRefreshSaved = document.getElementById("btn-refresh-saved-reports");
+  const btnThemeToggleCampaigns = document.getElementById("btn-theme-toggle-campaigns");
 
   if (btnOpenAnalytics) {
     btnOpenAnalytics.addEventListener("click", () => {
@@ -1285,9 +1319,31 @@ function setupRoutingAndHistory() {
     });
   }
 
+  if (navBtnCampaignFinder) {
+    navBtnCampaignFinder.addEventListener("click", (e) => {
+      e.preventDefault();
+      saveAppState();
+      switchToView("campaigns", true);
+    });
+  }
+
   if (btnBackToMaster) {
     btnBackToMaster.addEventListener("click", () => {
       switchToView("master", true);
+    });
+  }
+
+  if (btnCampaignsBackToMaster) {
+    btnCampaignsBackToMaster.addEventListener("click", () => {
+      switchToView("master", true);
+    });
+  }
+
+  if (btnThemeToggleCampaigns) {
+    btnThemeToggleCampaigns.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      updateThemeButtons(isDark);
     });
   }
 
@@ -1333,7 +1389,9 @@ function setupRoutingAndHistory() {
   window.addEventListener("popstate", (e) => {
     const path = window.location.pathname;
     const hash = window.location.hash;
-    if (path === "/analytics" || e.state?.view === "analytics") {
+    if (path === "/campaigns" || e.state?.view === "campaigns" || hash === "#campaigns") {
+      switchToView("campaigns", false);
+    } else if (path === "/analytics" || e.state?.view === "analytics" || hash === "#analytics") {
       switchToView("analytics", false);
     } else if (path.startsWith("/report/") || hash.startsWith("#report/")) {
       const rId = path.startsWith("/report/")
@@ -1347,7 +1405,9 @@ function setupRoutingAndHistory() {
 
   const path = window.location.pathname;
   const hash = window.location.hash;
-  if (path === "/analytics" || hash === "#analytics") {
+  if (path === "/campaigns" || hash === "#campaigns") {
+    switchToView("campaigns", false);
+  } else if (path === "/analytics" || hash === "#analytics") {
     switchToView("analytics", false);
   } else if (path.startsWith("/report/") || hash.startsWith("#report/")) {
     const rId = path.startsWith("/report/")
@@ -1892,10 +1952,12 @@ function setupAliasesModal() {
   const btnSave = document.getElementById("btn-save-alias");
   const listContainer = document.getElementById("aliases-list");
 
-  btnOpen.addEventListener("click", () => {
-    loadAliases();
-    modal.classList.remove("hidden");
-  });
+  if (btnOpen) {
+    btnOpen.addEventListener("click", () => {
+      loadAliases();
+      modal.classList.remove("hidden");
+    });
+  }
 
   btnClose.addEventListener("click", () => {
     modal.classList.add("hidden");
@@ -2005,4 +2067,380 @@ function setLoading(isLoading, text = "Processing...") {
     btnRun.disabled = false;
     btnRun.innerHTML = `<i class="ph-bold ph-play"></i><span>Run ETL & Calculate RPCs</span>`;
   }
+}
+
+// =========================================================================
+// 6. Universal Affiliate Campaign Finder (Cross-Network Arbitrage Engine)
+// =========================================================================
+
+let campaignState = {
+  query: "",
+  network: "all",
+  category: "all",
+  status: "all",
+  sort: "payout_desc"
+};
+let isCampaignFinderInitialized = false;
+
+window.initCampaignFinder = function() {
+  if (!isCampaignFinderInitialized) {
+    setupCampaignFinderListeners();
+    isCampaignFinderInitialized = true;
+  }
+  fetchCampaignNetworks();
+  fetchAndRenderCampaigns();
+};
+
+async function fetchCampaignNetworks() {
+  try {
+    const res = await fetch("/api/campaigns/networks");
+    if (res.ok) {
+      const networks = await res.json();
+      renderNetworkPills(networks);
+      const totalAll = networks.find(n => n.id === "all");
+      const badge = document.getElementById("catalog-total-badge");
+      if (badge && totalAll) {
+        badge.textContent = `${totalAll.count} Live Offers`;
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching networks summary:", err);
+  }
+}
+
+function renderNetworkPills(networks) {
+  const container = document.getElementById("campaign-network-pills");
+  if (!container || !networks || networks.length === 0) return;
+
+  container.innerHTML = "";
+  networks.forEach(net => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const isActive = campaignState.network === net.id;
+    btn.className = `network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border ${
+      isActive
+        ? "active border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-indigo-400 hover:text-indigo-400"
+    }`;
+    btn.dataset.network = net.id;
+    
+    let icon = "🌐";
+    if (net.id === "cuelinks") icon = "🔗";
+    else if (net.id === "admitad") icon = "🛡️";
+    else if (net.id === "inrdeals") icon = "₹";
+    else if (net.id === "cj") icon = "⚡";
+    else if (net.id === "cashkaro") icon = "👛";
+    else if (net.id === "icubeswire") icon = "🧊";
+    else if (net.id === "pantech") icon = "⚙️";
+    else if (net.id === "zonet") icon = "📊";
+
+    btn.innerHTML = `${icon} ${escapeHtml(net.name)} <span class="ml-1 opacity-80 font-bold">(${net.count})</span>`;
+    
+    btn.addEventListener("click", () => {
+      campaignState.network = net.id;
+      document.querySelectorAll(".network-pill").forEach(p => {
+        p.classList.remove("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
+        p.classList.add("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
+      });
+      btn.classList.add("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
+      btn.classList.remove("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
+      
+      const badge = document.getElementById("active-network-name-badge");
+      if (badge) {
+        badge.textContent = `Showing: ${net.name}`;
+      }
+      fetchAndRenderCampaigns();
+    });
+
+    container.appendChild(btn);
+  });
+}
+
+let campaignDebounceTimer = null;
+
+function setupCampaignFinderListeners() {
+  const searchInput = document.getElementById("campaign-search-input");
+  const btnClear = document.getElementById("btn-clear-campaign-search");
+  const selectCat = document.getElementById("select-campaign-category");
+  const selectStatus = document.getElementById("select-campaign-status");
+  const selectSort = document.getElementById("select-campaign-sort");
+  const btnReset = document.getElementById("btn-reset-campaign-filters");
+  const btnEmptyReset = document.getElementById("btn-empty-reset");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      campaignState.query = e.target.value.trim();
+      if (btnClear) {
+        if (campaignState.query.length > 0) {
+          btnClear.classList.remove("hidden");
+        } else {
+          btnClear.classList.add("hidden");
+        }
+      }
+      clearTimeout(campaignDebounceTimer);
+      campaignDebounceTimer = setTimeout(() => {
+        fetchAndRenderCampaigns();
+      }, 250);
+    });
+  }
+
+  if (btnClear) {
+    btnClear.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      campaignState.query = "";
+      btnClear.classList.add("hidden");
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  document.querySelectorAll(".quick-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const b = chip.dataset.brand;
+      if (searchInput) searchInput.value = b;
+      campaignState.query = b;
+      if (btnClear) btnClear.classList.remove("hidden");
+      fetchAndRenderCampaigns();
+    });
+  });
+
+  if (selectCat) {
+    selectCat.addEventListener("change", (e) => {
+      campaignState.category = e.target.value;
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  if (selectStatus) {
+    selectStatus.addEventListener("change", (e) => {
+      campaignState.status = e.target.value;
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  if (selectSort) {
+    selectSort.addEventListener("change", (e) => {
+      campaignState.sort = e.target.value;
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  const resetAll = () => {
+    campaignState = {
+      query: "",
+      network: "all",
+      category: "all",
+      status: "all",
+      sort: "payout_desc"
+    };
+    if (searchInput) searchInput.value = "";
+    if (btnClear) btnClear.classList.add("hidden");
+    if (selectCat) selectCat.value = "all";
+    if (selectStatus) selectStatus.value = "all";
+    if (selectSort) selectSort.value = "payout_desc";
+    fetchCampaignNetworks();
+    fetchAndRenderCampaigns();
+  };
+
+  if (btnReset) btnReset.addEventListener("click", resetAll);
+  if (btnEmptyReset) btnEmptyReset.addEventListener("click", resetAll);
+}
+
+async function fetchAndRenderCampaigns() {
+  const cardsGrid = document.getElementById("campaign-cards-grid");
+  const emptyState = document.getElementById("campaign-empty-state");
+  const countLabel = document.getElementById("campaign-results-count");
+  const compareCallout = document.getElementById("campaign-compare-callout");
+  const compareDesc = document.getElementById("compare-callout-desc");
+
+  if (!cardsGrid) return;
+
+  cardsGrid.innerHTML = `
+    <div class="col-span-full py-12 text-center text-slate-400">
+      <i class="ph ph-spinner animate-spin text-2xl text-indigo-500"></i>
+      <p class="text-xs mt-2">Searching live affiliate networks...</p>
+    </div>
+  `;
+
+  try {
+    const params = new URLSearchParams({
+      query: campaignState.query,
+      network: campaignState.network,
+      category: campaignState.category,
+      status: campaignState.status,
+      sort: campaignState.sort
+    });
+
+    const res = await fetch(`/api/campaigns/search?${params.toString()}`);
+    if (!res.ok) throw new Error("Search request failed");
+    const data = await res.json();
+    const results = data.results || [];
+
+    if (countLabel) {
+      const netCount = data.networks_in_results ? data.networks_in_results.length : 1;
+      countLabel.textContent = `Showing ${results.length} campaigns across ${netCount} network${netCount !== 1 ? 's' : ''}`;
+    }
+
+    // Check for Comparative Arbitrage Winner
+    const bestWinner = results.find(r => r.is_best_payout && r.payout_diff_label);
+    if (bestWinner && compareCallout && compareDesc) {
+      compareCallout.classList.remove("hidden");
+      compareDesc.innerHTML = `
+        <strong>${escapeHtml(bestWinner.brand_name)}</strong> is active across multiple networks! 
+        <strong>${escapeHtml(bestWinner.network_name)}</strong> pays the highest commission at 
+        <span class="text-emerald-400 font-bold">${escapeHtml(bestWinner.payout_display)}</span> 
+        (${escapeHtml(bestWinner.payout_diff_label)}).
+      `;
+    } else if (compareCallout) {
+      compareCallout.classList.add("hidden");
+    }
+
+    if (results.length === 0) {
+      cardsGrid.innerHTML = "";
+      if (emptyState) emptyState.classList.remove("hidden");
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    cardsGrid.innerHTML = "";
+
+    results.forEach(c => {
+      const card = createCampaignCard(c);
+      cardsGrid.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Error searching campaigns:", err);
+    if (cardsGrid) {
+      cardsGrid.innerHTML = `
+        <div class="col-span-full py-8 text-center text-rose-500">
+          <p class="text-sm font-semibold">Error searching campaigns</p>
+          <p class="text-xs mt-1 text-slate-400">${escapeHtml(err.message)}</p>
+        </div>
+      `;
+    }
+  }
+}
+
+function createCampaignCard(c) {
+  const card = document.createElement("div");
+  const isBest = Boolean(c.is_best_payout);
+
+  card.className = `metric-card flex flex-col justify-between p-5 rounded-2xl bg-white dark:bg-[#0d1424] border ${
+    isBest 
+      ? "border-emerald-500/60 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/30" 
+      : "border-slate-200 dark:border-slate-800/80 shadow-sm hover:border-indigo-500/40"
+  } transition-all duration-200 relative overflow-hidden`;
+
+  // Network badge colors
+  let netColorClass = "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
+  const nid = (c.network_id || "").toLowerCase();
+  if (nid === "cuelinks") netColorClass = "bg-sky-500/15 text-sky-400 border-sky-500/30";
+  else if (nid === "admitad") netColorClass = "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+  else if (nid === "inrdeals") netColorClass = "bg-purple-500/15 text-purple-400 border-purple-500/30";
+  else if (nid === "cj") netColorClass = "bg-amber-500/15 text-amber-400 border-amber-500/30";
+  else if (nid === "cashkaro") netColorClass = "bg-rose-500/15 text-rose-400 border-rose-500/30";
+  else if (nid === "icubeswire") netColorClass = "bg-teal-500/15 text-teal-400 border-teal-500/30";
+  else if (nid === "pantech") netColorClass = "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
+  else if (nid === "zonet") netColorClass = "bg-blue-500/15 text-blue-400 border-blue-500/30";
+
+  // Status badge
+  let statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>Active</span></span>';
+  if (c.status === "apply_required") {
+    statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Apply Required</span></span>';
+  } else if (c.status === "paused") {
+    statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Paused</span></span>';
+  }
+
+  // Best payout badge
+  let bestBadgeHtml = "";
+  if (isBest) {
+    bestBadgeHtml = `
+      <div class="mb-2">
+        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wide">
+          <span>🏆 Top Payout</span>
+          ${c.payout_diff_label ? `<span class="opacity-75 font-normal ml-1">(${escapeHtml(c.payout_diff_label.replace("🏆 ", ""))})</span>` : ""}
+        </span>
+      </div>
+    `;
+  }
+
+  const brandInitial = (c.brand_name || "A").charAt(0).toUpperCase();
+
+  card.innerHTML = `
+    <div>
+      ${bestBadgeHtml}
+      
+      <!-- Top Card Row: Brand & Network -->
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-slate-600">
+            ${brandInitial}
+          </div>
+          <div class="truncate">
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(c.brand_name)}">
+              ${escapeHtml(c.brand_name)}
+            </h4>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(c.category || "General")}</span>
+          </div>
+        </div>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-wide shrink-0 ${netColorClass}">
+          ${escapeHtml(c.network_name)}
+        </span>
+      </div>
+
+      <!-- Campaign Title -->
+      <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1 mb-3" title="${escapeHtml(c.campaign_title)}">
+        ${escapeHtml(c.campaign_title)}
+      </p>
+
+      <!-- Payout Box -->
+      <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#070b14]/80 border ${isBest ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-100 dark:border-slate-800'} mb-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Commission Payout</span>
+            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}">
+              ${escapeHtml(c.payout_display)}
+            </div>
+          </div>
+          <div>
+            ${statusHtml}
+          </div>
+        </div>
+      </div>
+
+      <!-- Description snippet -->
+      <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+        ${escapeHtml(c.description || "Active tracking offer for verified affiliate publishers.")}
+      </p>
+
+      <!-- Metadata chips -->
+      <div class="flex items-center space-x-3 text-[10px] text-slate-400 pb-3 border-b border-slate-100 dark:border-slate-800/80 mb-3">
+        <span class="flex items-center space-x-1">
+          <i class="ph ph-clock text-xs"></i>
+          <span>${c.cookie_days} Day Cookie</span>
+        </span>
+        <span class="flex items-center space-x-1">
+          <i class="ph ph-map-pin text-xs"></i>
+          <span>${escapeHtml(c.geo || "India")}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- 1-Click Action Button -->
+    <a 
+      href="${escapeHtml(c.deep_link_url || '#')}" 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      class="w-full inline-flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
+        isBest 
+          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/25' 
+          : 'bg-slate-100 dark:bg-slate-800/90 hover:bg-indigo-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-indigo-600'
+      }"
+    >
+      <span>Apply / View on ${escapeHtml(c.network_name)}</span>
+      <i class="ph-bold ph-arrow-square-out text-sm"></i>
+    </a>
+  `;
+
+  return card;
 }

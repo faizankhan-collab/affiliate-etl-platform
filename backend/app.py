@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from .etl.engine import ETLEngine
 from .etl.normalizer import BrandNormalizer
+from .campaign_finder import CampaignFinderService
 from .models import AliasAddRequest, AliasResponse, ETLProcessResponse
 
 app = FastAPI(
@@ -53,6 +54,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 # Global instances
 normalizer = BrandNormalizer()
 engine = ETLEngine(normalizer=normalizer)
+campaign_finder = CampaignFinderService(normalizer=normalizer)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -145,6 +147,15 @@ async def read_root():
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def read_analytics():
+    index_file = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_file):
+        with open(index_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h1>Affiliate ETL Platform is running</h1>")
+
+
+@app.get("/campaigns", response_class=HTMLResponse)
+async def read_campaigns_view():
     index_file = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
@@ -871,3 +882,45 @@ async def download_sample_file(filename: str):
         else ("application/vnd.ms-excel" if fpath.endswith(".xls") else "text/csv")
     )
     return FileResponse(fpath, filename=filename, media_type=media_type)
+
+
+# --- Universal Affiliate Campaign Finder Endpoints ---
+
+@app.get("/api/campaigns/search")
+async def api_search_campaigns(
+    query: Optional[str] = None,
+    network: Optional[str] = "all",
+    category: Optional[str] = "all",
+    status: Optional[str] = "all",
+    sort: Optional[str] = "payout_desc",
+):
+    """Search and filter live campaigns across all connected affiliate networks."""
+    try:
+        return campaign_finder.search_campaigns(
+            query=query,
+            network=network,
+            category=category,
+            status=status,
+            sort_by=sort,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Campaign search error: {str(e)}")
+
+
+@app.get("/api/campaigns/networks")
+async def api_get_campaign_networks():
+    """Get active counts and metadata for all 8 supported affiliate networks."""
+    try:
+        return campaign_finder.get_networks_summary()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Networks fetch error: {str(e)}")
+
+
+@app.get("/api/campaigns/categories")
+async def api_get_campaign_categories():
+    """Get category distribution across all active affiliate campaigns."""
+    try:
+        return campaign_finder.get_categories()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Categories fetch error: {str(e)}")
+
