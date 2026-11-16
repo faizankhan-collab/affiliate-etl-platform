@@ -672,6 +672,12 @@
               <span>CSV</span>
             </button>
 
+            <!-- Save Report Button -->
+            <button id="btn-save-current-report" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg shadow-sm shadow-emerald-500/25 transition active:scale-95 cursor-pointer" title="Save this report to persistent storage">
+              <i class="ph-bold ph-floppy-disk text-sm"></i>
+              <span>Save Report</span>
+            </button>
+
             <!-- Reset / Clear Stored Table -->
             <button id="btn-reset-master-table" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/70 transition shadow-xs cursor-pointer" title="Clear saved table cache and reset view">
               <i class="ph-bold ph-trash text-sm text-rose-600 dark:text-rose-400"></i>
@@ -1502,6 +1508,42 @@
       <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
         <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Existing Brand Rules</p>
         <div id="aliases-list" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Save Custom Report -->
+  <div id="modal-save-report" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#0d1424] rounded-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <i class="ph-bold ph-floppy-disk text-emerald-600 dark:text-emerald-400"></i>
+            <span>Save Reconciliation Report</span>
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Persist this report permanently to cloud disk & local browser storage</p>
+        </div>
+        <button id="btn-close-save-report" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Report Title</label>
+          <input type="text" id="input-save-report-title" placeholder="e.g. October 2026 Master Reconciliation" class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium">
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#080e1c] border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 text-slate-600 dark:text-slate-400">
+          <div class="flex justify-between"><span>Active Window:</span><strong id="save-report-dates" class="text-slate-800 dark:text-slate-200 font-mono">-</strong></div>
+          <div class="flex justify-between"><span>Total Revenue:</span><strong id="save-report-rev" class="text-emerald-600 dark:text-emerald-400 font-mono">-</strong></div>
+          <div class="flex justify-between"><span>Internal Clicks:</span><strong id="save-report-clicks" class="text-blue-600 dark:text-blue-400 font-mono">-</strong></div>
+          <div class="flex justify-between"><span>Total Campaigns:</span><strong id="save-report-count" class="text-slate-800 dark:text-slate-200 font-mono">-</strong></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button id="btn-cancel-save-report" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">Cancel</button>
+        <button id="btn-confirm-save-report" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition">Save Report</button>
       </div>
     </div>
   </div>

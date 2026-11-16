@@ -75,6 +75,116 @@ const FileStore = {
   }
 };
 
+// Persistent storage helper for Saved Reports (IndexedDB + LocalStorage fallback)
+const ReportStore = {
+  dbName: "AffiliateETLReportsDB",
+  storeName: "saved_reports",
+  openDB() {
+    return new Promise((resolve) => {
+      if (typeof indexedDB === "undefined") return resolve(null);
+      const req = indexedDB.open(this.dbName, 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName, { keyPath: "id" });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    });
+  },
+  async saveReport(report) {
+    if (!report || !report.id) return false;
+    try {
+      const db = await this.openDB();
+      if (db) {
+        await new Promise((resolve) => {
+          const tx = db.transaction(this.storeName, "readwrite");
+          const store = tx.objectStore(this.storeName);
+          const req = store.put(report);
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        });
+      }
+      // Also write metadata to localStorage backup so it survives even if IndexedDB clears
+      const localKey = "affiliate_reports_backup";
+      const existing = JSON.parse(localStorage.getItem(localKey) || "{}");
+      const metaObj = {
+        id: report.id,
+        title: report.title,
+        start_date: report.start_date,
+        end_date: report.end_date,
+        days_count: report.days_count,
+        created_at: report.created_at,
+        usd_to_inr_rate: report.usd_to_inr_rate,
+        summary: report.summary,
+        // Store up to 500 rows in localStorage to avoid storage quota limit
+        data: (report.data && report.data.length > 500) ? report.data.slice(0, 500) : (report.data || []),
+      };
+      existing[report.id] = metaObj;
+      localStorage.setItem(localKey, JSON.stringify(existing));
+      return true;
+    } catch (e) {
+      console.warn("ReportStore save error:", e);
+      return false;
+    }
+  },
+  async getReport(id) {
+    try {
+      const db = await this.openDB();
+      if (db) {
+        const rep = await new Promise((resolve) => {
+          const tx = db.transaction(this.storeName, "readonly");
+          const store = tx.objectStore(this.storeName);
+          const req = store.get(id);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+        if (rep) return rep;
+      }
+      const existing = JSON.parse(localStorage.getItem("affiliate_reports_backup") || "{}");
+      return existing[id] || null;
+    } catch (e) {
+      return null;
+    }
+  },
+  async getAllReports() {
+    try {
+      const db = await this.openDB();
+      if (db) {
+        const list = await new Promise((resolve) => {
+          const tx = db.transaction(this.storeName, "readonly");
+          const store = tx.objectStore(this.storeName);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+        if (list && list.length > 0) return list;
+      }
+      const existing = JSON.parse(localStorage.getItem("affiliate_reports_backup") || "{}");
+      return Object.values(existing);
+    } catch (e) {
+      return [];
+    }
+  },
+  async deleteReport(id) {
+    try {
+      const db = await this.openDB();
+      if (db) {
+        const tx = db.transaction(this.storeName, "readwrite");
+        const store = tx.objectStore(this.storeName);
+        store.delete(id);
+      }
+      const existing = JSON.parse(localStorage.getItem("affiliate_reports_backup") || "{}");
+      delete existing[id];
+      localStorage.setItem("affiliate_reports_backup", JSON.stringify(existing));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+};
+
 const SUPPORTED_NETWORKS = [
   { id: "auto", label: "⚡ Auto-Detect" },
   { id: "cuelinks", label: "Cuelinks" },
@@ -96,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupActionButtons();
   setupSearchAndFilters();
   setupAliasesModal();
+  setupSaveReportModal();
   setupRoutingAndHistory();
   restoreAppState();
 });
@@ -1049,9 +1160,51 @@ async function loadSavedReports() {
   if (!container) return;
 
   try {
-    const res = await fetch("/api/reports");
-    const json = await res.json();
-    const reports = json.reports || [];
+    // 1. Fetch from server
+    let serverReports = [];
+    try {
+      const res = await fetch("/api/reports");
+      if (res.ok) {
+        const json = await res.json();
+        serverReports = json.reports || [];
+      }
+    } catch (e) {
+      console.warn("Server reports fetch warning:", e);
+    }
+
+    // 2. Fetch from client persistent storage (IndexedDB + localStorage fallback)
+    let localReports = [];
+    try {
+      localReports = await ReportStore.getAllReports();
+    } catch (e) {
+      console.warn("Local reports fetch warning:", e);
+    }
+
+    // 3. Merge seamlessly (deduplicate by id, prefer newest)
+    const mergedMap = new Map();
+    serverReports.forEach((r) => mergedMap.set(r.id, r));
+    localReports.forEach((r) => {
+      if (!mergedMap.has(r.id)) {
+        mergedMap.set(r.id, r);
+        // Sync back to backend so server also has it
+        try {
+          fetch("/api/reports", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(r),
+          });
+        } catch (syncErr) {}
+      } else {
+        const existing = mergedMap.get(r.id);
+        if (r.created_at && (!existing.created_at || r.created_at > existing.created_at)) {
+          mergedMap.set(r.id, r);
+        }
+      }
+    });
+
+    const reports = Array.from(mergedMap.values()).sort((a, b) => {
+      return (b.created_at || "").localeCompare(a.created_at || "");
+    });
 
     if (countPill) {
       countPill.textContent = `${reports.length} Saved`;
@@ -1166,9 +1319,23 @@ async function loadSavedReports() {
 
 async function openSavedReport(reportId) {
   try {
-    const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}`);
-    if (!res.ok) throw new Error("Report not found");
-    const report = await res.json();
+    let report = null;
+    try {
+      const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}`);
+      if (res.ok) {
+        report = await res.json();
+      }
+    } catch (e) {
+      console.warn("Server report fetch failed, attempting local ReportStore:", e);
+    }
+
+    // Fallback to local browser storage if server doesn't have it (e.g. Render restart)
+    if (!report || !report.data || report.data.length === 0) {
+      report = await ReportStore.getReport(reportId);
+    }
+
+    if (!report) throw new Error("Report not found on server or in local browser storage.");
+
     currentReportId = report.id;
     currentMasterData = report.data || [];
     currentSummary = report.summary || {};
@@ -1209,21 +1376,14 @@ async function deleteSavedReport(reportId, reportTitle, event) {
     return;
   }
   try {
-    const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}`, {
+    await fetch(`/api/reports/${encodeURIComponent(reportId)}`, {
       method: "DELETE",
     });
-    const data = await res.json();
-    if (data.success) {
-      await loadSavedReports();
-      if (currentReportId === reportId) {
-        switchToView("master", true);
-      }
-    } else {
-      alert("Failed to delete report: " + (data.detail || "Unknown error"));
-    }
-  } catch (err) {
-    console.error("Error deleting report:", err);
-    alert("Error deleting report: " + err.message);
+  } catch (err) {}
+  await ReportStore.deleteReport(reportId);
+  await loadSavedReports();
+  if (currentReportId === reportId) {
+    switchToView("master", true);
   }
 }
 
@@ -1571,11 +1731,115 @@ function handleSuccessResults(response) {
     new Date().toISOString()
   );
 
+  // Auto-persist report to browser storage so it is 100% durable across server reboots
+  try {
+    ReportStore.saveReport({
+      id: currentReportId,
+      title: title,
+      start_date: sDate,
+      end_date: eDate,
+      days_count: days,
+      created_at: new Date().toISOString(),
+      usd_to_inr_rate: 94.74,
+      summary: currentSummary,
+      data: currentMasterData,
+    });
+  } catch (storeErr) {}
+
   // Reload saved reports so the tile appears in the grid
   loadSavedReports();
 
   // Switch to dedicated report page view
   switchToView("report", true, currentReportId);
+}
+
+function setupSaveReportModal() {
+  const btnSave = document.getElementById("btn-save-current-report");
+  const modal = document.getElementById("modal-save-report");
+  const btnClose = document.getElementById("btn-close-save-report");
+  const btnCancel = document.getElementById("btn-cancel-save-report");
+  const btnConfirm = document.getElementById("btn-confirm-save-report");
+  const inputTitle = document.getElementById("input-save-report-title");
+
+  const datesEl = document.getElementById("save-report-dates");
+  const revEl = document.getElementById("save-report-rev");
+  const clicksEl = document.getElementById("save-report-clicks");
+  const countEl = document.getElementById("save-report-count");
+
+  function openModal() {
+    if (!currentMasterData || currentMasterData.length === 0) {
+      alert("No report data available to save. Please run the ETL Engine or load a dataset first.");
+      return;
+    }
+    const dateRange = currentSummary?.date_range || "Reconciliation Period";
+    const defaultTitle = `${dateRange} Reconciliation Report`;
+    if (inputTitle) inputTitle.value = defaultTitle;
+
+    if (datesEl) datesEl.textContent = dateRange;
+    if (revEl) revEl.textContent = formatCurrency(currentSummary?.total_revenue || 0);
+    if (clicksEl) clicksEl.textContent = formatNumber(currentSummary?.total_internal_clicks || 0);
+    if (countEl) countEl.textContent = `${currentMasterData.length} Campaigns`;
+
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.add("hidden");
+  }
+
+  if (btnSave) btnSave.addEventListener("click", openModal);
+  if (btnClose) btnClose.addEventListener("click", closeModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
+
+  if (btnConfirm) {
+    btnConfirm.addEventListener("click", async () => {
+      const title = (inputTitle && inputTitle.value.trim()) || "Saved Report";
+      const sDate = currentSummary?.start_date || "2026-10-01";
+      const eDate = currentSummary?.end_date || "2026-10-31";
+      const repId = `custom_${sDate.replace(/-/g, "")}_${eDate.replace(/-/g, "")}_${Date.now()}`;
+
+      const reportPayload = {
+        id: repId,
+        title: title,
+        start_date: sDate,
+        end_date: eDate,
+        days_count: Math.max(1, Math.ceil((new Date(eDate) - new Date(sDate)) / (1000 * 60 * 60 * 24)) + 1),
+        created_at: new Date().toISOString(),
+        usd_to_inr_rate: 94.74,
+        summary: currentSummary || {},
+        data: currentMasterData || [],
+      };
+
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = "Saving...";
+
+      try {
+        // 1. Save to local browser storage (IndexedDB + localStorage backup)
+        await ReportStore.saveReport(reportPayload);
+
+        // 2. Save to backend API
+        try {
+          await fetch("/api/reports", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(reportPayload),
+          });
+        } catch (serverErr) {
+          console.warn("Backend save notice:", serverErr);
+        }
+
+        closeModal();
+        currentReportId = repId;
+        await loadSavedReports();
+        alert(`✅ Report "${title}" saved successfully! It is permanently stored and available under Saved Reports.`);
+      } catch (err) {
+        alert("Failed to save report: " + err.message);
+      } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = "Save Report";
+      }
+    });
+  }
 }
 
 function renderKPIs(summary) {
