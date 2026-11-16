@@ -1298,35 +1298,36 @@
           <!-- Top Badge & Heading -->
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold bg-pink-500/15 text-pink-400 border border-pink-500/30">
-                <i class="ph-bold ph-radar animate-pulse text-sm"></i>
-                <span>Cross-Network Arbitrage & Offer Discovery</span>
+              <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                <i class="ph-bold ph-link text-sm"></i>
+                <span>Official Cuelinks API v3 • Live Publisher Stream</span>
               </span>
               <h2 class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">
-                Universal Affiliate Campaign Finder
+                Cuelinks Live Campaign Explorer
               </h2>
               <p class="text-sm text-slate-300 mt-1 max-w-3xl">
-                Search brands, compare live payout commissions across all 8 affiliate networks, and apply in 1 click. Never send traffic to a lower-paying network again.
+                Search and explore over 26,450+ active merchant campaigns directly from Cuelinks' live production servers. 100% verified real-time commissions, tracking links, and EPC.
               </p>
             </div>
             <div class="flex items-center space-x-2">
-              <span class="text-xs text-slate-400 font-medium">Catalog:</span>
-              <span id="catalog-total-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                50+ Live Offers
+              <span class="text-xs text-slate-400 font-medium">Status:</span>
+              <span id="catalog-total-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>26,450+ Live Offers</span>
               </span>
             </div>
           </div>
 
           <!-- Hero Search Box -->
           <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-400">
               <i class="ph-bold ph-magnifying-glass text-xl"></i>
             </div>
             <input
               id="campaign-search-input"
               type="text"
-              placeholder="Search any brand or campaign (e.g. Amazon, Nike, Ajio, Puma, Samsung, Flipkart, MakeMyTrip...)"
-              class="w-full pl-12 pr-12 py-3.5 text-sm sm:text-base bg-slate-900/90 dark:bg-[#070b14]/95 text-white placeholder-slate-400 border border-indigo-500/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition shadow-inner"
+              placeholder="Search live Cuelinks campaigns (e.g. Flipkart, Amazon, Myntra, Ajio, Nike, Samsung, Swiggy...)"
+              class="w-full pl-12 pr-12 py-3.5 text-sm sm:text-base bg-slate-900/90 dark:bg-[#070b14]/95 text-white placeholder-slate-400 border border-sky-500/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition shadow-inner"
             />
             <button
               id="btn-clear-campaign-search"
@@ -1345,18 +1346,18 @@
               <span>Popular Brands:</span>
             </span>
             <div id="quick-brand-chips" class="flex flex-wrap gap-1.5">
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Amazon">Amazon</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Flipkart">Flipkart</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Amazon">Amazon</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Myntra">Myntra</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Ajio">Ajio</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Samsung">Samsung</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nike">Nike</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Samsung">Samsung</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Puma">Puma</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Tata CliQ">Tata CliQ</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nykaa">Nykaa</button>
               <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="MakeMyTrip">MakeMyTrip</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="SBI Card">SBI Card</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Hostinger">Hostinger</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Swiggy">Swiggy</button>
+              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Dominos">Dominos</button>
             </div>
           </div>
         </div>
@@ -1367,42 +1368,18 @@
         <!-- Network Pills Bar -->
         <div class="flex items-center justify-between pb-1">
           <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-            <i class="ph-bold ph-funnel text-indigo-500"></i>
-            <span>Browse by Network (Click to view all campaigns on that network)</span>
+            <i class="ph-bold ph-shield-check text-emerald-500"></i>
+            <span>Connected Affiliate Network (Direct Live API Stream)</span>
           </p>
-          <span id="active-network-name-badge" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-            Showing: All Networks
+          <span id="active-network-name-badge" class="text-xs font-semibold text-sky-600 dark:text-sky-400">
+            Cuelinks API: Connected 🟢
           </span>
         </div>
 
         <div id="campaign-network-pills" class="flex flex-wrap gap-2">
-          <!-- Dynamically populated or static pills -->
-          <button type="button" class="network-pill active px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer border border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/30" data-network="all">
-            🌐 All Networks <span class="ml-1 opacity-80">(51)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-400" data-network="cuelinks">
-            🔗 Cuelinks <span class="ml-1 text-slate-400">(17)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-emerald-500 hover:text-emerald-400" data-network="admitad">
-            🛡️ Admitad <span class="ml-1 text-slate-400">(11)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-purple-500 hover:text-purple-400" data-network="inrdeals">
-            ₹ INRDeals <span class="ml-1 text-slate-400">(8)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-amber-500 hover:text-amber-400" data-network="cj">
-            ⚡ CJ Affiliate <span class="ml-1 text-slate-400">(5)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-rose-500 hover:text-rose-400" data-network="cashkaro">
-            👛 CashKaro <span class="ml-1 text-slate-400">(2)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-teal-500 hover:text-teal-400" data-network="icubeswire">
-            🧊 iCubesWire <span class="ml-1 text-slate-400">(3)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-cyan-500 hover:text-cyan-400" data-network="pantech">
-            ⚙️ Pantech <span class="ml-1 text-slate-400">(3)</span>
-          </button>
-          <button type="button" class="network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-400" data-network="zonet">
-            📊 Zonet <span class="ml-1 text-slate-400">(2)</span>
+          <!-- Live connected network -->
+          <button type="button" class="network-pill active px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer border border-sky-600 bg-sky-600 text-white shadow-md shadow-sky-600/30" data-network="cuelinks">
+            🔗 Cuelinks (Live Official API v3) <span class="ml-1 opacity-90 font-black">(26,450+ Offers)</span>
           </button>
         </div>
 

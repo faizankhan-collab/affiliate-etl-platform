@@ -54,7 +54,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 # Global instances
 normalizer = BrandNormalizer()
 engine = ETLEngine(normalizer=normalizer)
-campaign_finder = CampaignFinderService(normalizer=normalizer)
+campaign_finder = CampaignFinderService()
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

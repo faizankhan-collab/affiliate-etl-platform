@@ -2364,7 +2364,10 @@ function createCampaignCard(c) {
     `;
   }
 
-  const brandInitial = (c.brand_name || "A").charAt(0).toUpperCase();
+  const brandInitial = (c.brand_name || "C").charAt(0).toUpperCase();
+  const logoHtml = c.image_url && !c.image_url.includes("Placeholder")
+    ? `<img src="${escapeHtml(c.image_url)}" alt="${escapeHtml(c.brand_name)}" class="w-9 h-9 rounded-xl object-contain bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0" onerror="this.onerror=null; this.src=''; this.classList.add('hidden');" />`
+    : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-sky-500/40">${brandInitial}</div>`;
 
   card.innerHTML = `
     <div>
@@ -2373,9 +2376,7 @@ function createCampaignCard(c) {
       <!-- Top Card Row: Brand & Network -->
       <div class="flex items-center justify-between gap-2 mb-3">
         <div class="flex items-center space-x-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-slate-600">
-            ${brandInitial}
-          </div>
+          ${logoHtml}
           <div class="truncate">
             <h4 class="text-sm font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(c.brand_name)}">
               ${escapeHtml(c.brand_name)}
@@ -2388,17 +2389,18 @@ function createCampaignCard(c) {
         </span>
       </div>
 
-      <!-- Campaign Title -->
-      <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1 mb-3" title="${escapeHtml(c.campaign_title)}">
+      <!-- Campaign Title & Domain -->
+      <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1 mb-1" title="${escapeHtml(c.campaign_title)}">
         ${escapeHtml(c.campaign_title)}
       </p>
+      ${c.domain ? `<p class="text-[11px] text-sky-500 dark:text-sky-400 font-mono mb-3 truncate">${escapeHtml(c.domain)}</p>` : '<div class="mb-3"></div>'}
 
       <!-- Payout Box -->
       <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#070b14]/80 border ${isBest ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-100 dark:border-slate-800'} mb-3">
         <div class="flex items-center justify-between">
           <div>
             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Commission Payout</span>
-            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}">
+            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : 'text-sky-600 dark:text-sky-400'}">
               ${escapeHtml(c.payout_display)}
             </div>
           </div>
@@ -2410,34 +2412,47 @@ function createCampaignCard(c) {
 
       <!-- Description snippet -->
       <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-        ${escapeHtml(c.description || "Active tracking offer for verified affiliate publishers.")}
+        ${escapeHtml(c.description || "Active Cuelinks v3 campaign offer.")}
       </p>
 
       <!-- Metadata chips -->
       <div class="flex items-center space-x-3 text-[10px] text-slate-400 pb-3 border-b border-slate-100 dark:border-slate-800/80 mb-3">
         <span class="flex items-center space-x-1">
           <i class="ph ph-clock text-xs"></i>
-          <span>${c.cookie_days} Day Cookie</span>
+          <span>${c.cookie_days || '30 Days'} Cookie</span>
         </span>
         <span class="flex items-center space-x-1">
-          <i class="ph ph-map-pin text-xs"></i>
-          <span>${escapeHtml(c.geo || "India")}</span>
+          <i class="ph ph-chart-line-up text-xs text-emerald-400"></i>
+          <span>EPC: ₹${c.epc_7d || '0.0'}</span>
         </span>
       </div>
     </div>
 
-    <!-- 1-Click Action Button -->
-    <a 
-      href="${escapeHtml(c.deep_link_url || '#')}" 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      class="w-full inline-flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
-        isBest 
-          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/25' 
-          : 'bg-slate-100 dark:bg-slate-800/90 hover:bg-indigo-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-indigo-600'
-      }"
-    >
-      <span>Apply / View on ${escapeHtml(c.network_name)}</span>
+    <!-- 1-Click Action Buttons -->
+    <div class="grid grid-cols-2 gap-2">
+      <a 
+        href="${escapeHtml(c.panel_url || 'https://www.cuelinks.com/campaigns')}" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="inline-flex items-center justify-center space-x-1 py-2 px-2 rounded-xl text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 hover:bg-sky-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer text-center"
+      >
+        <span>View on Cuelinks</span>
+        <i class="ph-bold ph-arrow-square-out text-xs"></i>
+      </a>
+      ${c.tracking_url ? `
+      <a 
+        href="${escapeHtml(c.tracking_url)}" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="inline-flex items-center justify-center space-x-1 py-2 px-2 rounded-xl text-[11px] font-bold bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-xs transition cursor-pointer text-center"
+      >
+        <span>Live Link</span>
+        <i class="ph-bold ph-link text-xs"></i>
+      </a>` : `
+      <span class="inline-flex items-center justify-center py-2 px-2 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-slate-800/50 text-slate-400 border border-slate-200 dark:border-slate-800 text-center">
+        Apply to Unlock
+      </span>`}
+    </div>
       <i class="ph-bold ph-arrow-square-out text-sm"></i>
     </a>
   `;
