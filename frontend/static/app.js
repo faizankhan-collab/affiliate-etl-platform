@@ -201,13 +201,17 @@ const SUPPORTED_NETWORKS = [
 
 document.addEventListener("DOMContentLoaded", () => {
   setupThemeToggle();
+  try {
+    setupRoutingAndHistory();
+  } catch (err) {
+    console.error("Routing setup error:", err);
+  }
   setupInternalClicksDropzone();
   setupNetworkFilesDropzone();
   setupActionButtons();
   setupSearchAndFilters();
   setupAliasesModal();
   setupSaveReportModal();
-  setupRoutingAndHistory();
   restoreAppState();
 });
 
@@ -1397,6 +1401,10 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
   const headerAnalytics = document.getElementById("header-analytics-nav");
   const headerCampaigns = document.getElementById("header-campaigns-nav");
 
+  // Keep route class in sync on <html> for CSS isolation
+  document.documentElement.classList.remove("route-campaigns", "route-analytics", "route-report", "route-master");
+  document.documentElement.classList.add(`route-${viewName}`);
+
   if (viewName === "campaigns") {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
@@ -1660,10 +1668,18 @@ function restoreAppState() {
       if (currentSummary.network_processing_logs) {
         renderProcessingLogs(currentSummary.network_processing_logs);
       }
-      document.getElementById("section-kpis").classList.remove("hidden");
-      document.getElementById("section-results").classList.remove("hidden");
-      if (currentSummary.network_processing_logs && currentSummary.network_processing_logs.length > 0) {
-        document.getElementById("section-logs").classList.remove("hidden");
+      const isCampaignsView = window.location.pathname === "/campaigns" || 
+                              window.location.hash === "#campaigns" || 
+                              document.documentElement.classList.contains("route-campaigns");
+      if (!isCampaignsView) {
+        const secKpis = document.getElementById("section-kpis");
+        const secRes = document.getElementById("section-results");
+        if (secKpis) secKpis.classList.remove("hidden");
+        if (secRes) secRes.classList.remove("hidden");
+        if (currentSummary.network_processing_logs && currentSummary.network_processing_logs.length > 0) {
+          const secLogs = document.getElementById("section-logs");
+          if (secLogs) secLogs.classList.remove("hidden");
+        }
       }
     }
 

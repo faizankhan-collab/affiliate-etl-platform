@@ -159,7 +159,14 @@ async def read_campaigns_view():
     index_file = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+            content = f.read()
+            # Server-side HTML pre-rendering: ensure view-campaigns is visible and master sheet is hidden
+            content = content.replace('id="view-master" class="space-y-6"', 'id="view-master" class="hidden space-y-6"')
+            content = content.replace('id="view-campaigns" class="hidden space-y-6"', 'id="view-campaigns" class="space-y-6"')
+            content = content.replace('id="header-master-nav" class="bg-white/95', 'id="header-master-nav" class="hidden bg-white/95')
+            content = content.replace('id="header-campaigns-nav" class="hidden bg-white/95', 'id="header-campaigns-nav" class="bg-white/95')
+            content = content.replace('<html lang="en"', '<html lang="en" class="route-campaigns"')
+            return HTMLResponse(content=content)
     return HTMLResponse("<h1>Affiliate ETL Platform is running</h1>")
 
 

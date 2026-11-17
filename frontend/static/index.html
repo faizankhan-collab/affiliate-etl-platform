@@ -35,6 +35,19 @@
         }
       } catch (e) {}
     })();
+
+    // Synchronous Route Lock before first paint to prevent master sheet flash on /campaigns
+    (function() {
+      try {
+        const path = window.location.pathname;
+        const hash = window.location.hash;
+        if (path === '/campaigns' || hash === '#campaigns') {
+          document.documentElement.classList.add('route-campaigns');
+        } else if (path === '/analytics' || hash === '#analytics') {
+          document.documentElement.classList.add('route-analytics');
+        }
+      } catch (e) {}
+    })();
   </script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -42,6 +55,19 @@
   <script src="/static/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/static/style.css?v=3.8">
   <style>
+    /* Route Isolation: Force master sheet and report views to stay hidden when on campaign finder */
+    html.route-campaigns #view-master,
+    html.route-campaigns #view-report,
+    html.route-campaigns #view-analytics,
+    html.route-campaigns #header-master-nav,
+    html.route-campaigns #header-analytics-nav {
+      display: none !important;
+    }
+    html.route-campaigns #view-campaigns,
+    html.route-campaigns #header-campaigns-nav {
+      display: block !important;
+    }
+
     .metric-card {
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
     }
