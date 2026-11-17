@@ -2387,7 +2387,7 @@ function setLoading(isLoading, text = "Processing...") {
 
 let campaignState = {
   query: "",
-  network: "cuelinks",
+  network: "all",
   country: "in",
   category: "all",
   status: "all",
@@ -2430,7 +2430,7 @@ function renderNetworkPills(networks) {
     const btn = document.createElement("button");
     btn.type = "button";
     const isActive = campaignState.network === net.id;
-    btn.className = `network-pill px-3.5 py-2 text-xs font-semibold rounded-xl transition cursor-pointer border ${
+    btn.className = `network-pill px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border ${
       isActive
         ? "active border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
         : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-200 hover:border-indigo-400 hover:text-indigo-400"
@@ -2439,34 +2439,53 @@ function renderNetworkPills(networks) {
     
     let icon = "🌐";
     if (net.id === "cuelinks") icon = "🔗";
+    else if (net.id === "cashkaro") icon = "⚡";
     else if (net.id === "admitad") icon = "🛡️";
     else if (net.id === "inrdeals") icon = "₹";
-    else if (net.id === "cj") icon = "⚡";
-    else if (net.id === "cashkaro") icon = "👛";
-    else if (net.id === "icubeswire") icon = "🧊";
-    else if (net.id === "pantech") icon = "⚙️";
-    else if (net.id === "zonet") icon = "📊";
 
-    btn.innerHTML = `${icon} ${escapeHtml(net.name)} <span class="ml-1 opacity-80 font-bold">(${net.count})</span>`;
+    btn.innerHTML = `${icon} ${escapeHtml(net.name)} <span class="ml-1 opacity-80 font-bold">(${net.count.toLocaleString()})</span>`;
     
     btn.addEventListener("click", () => {
       campaignState.network = net.id;
-      document.querySelectorAll(".network-pill").forEach(p => {
-        p.classList.remove("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
-        p.classList.add("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
-      });
-      btn.classList.add("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
-      btn.classList.remove("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
-      
-      const badge = document.getElementById("active-network-name-badge");
-      if (badge) {
-        badge.textContent = `Showing: ${net.name}`;
-      }
+      syncNetworkControls(net.id);
       fetchAndRenderCampaigns();
     });
 
     container.appendChild(btn);
   });
+}
+
+function syncNetworkControls(netId) {
+  // Sync dropdown
+  const selectNet = document.getElementById("select-campaign-network");
+  if (selectNet && selectNet.value !== netId) {
+    selectNet.value = netId;
+  }
+
+  // Sync pills
+  document.querySelectorAll(".network-pill").forEach(p => {
+    if (p.dataset.network === netId) {
+      p.classList.add("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
+      p.classList.remove("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
+    } else {
+      p.classList.remove("active", "border-indigo-600", "bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/30");
+      p.classList.add("border-slate-200", "dark:border-slate-800", "bg-white", "dark:bg-slate-900/80", "text-slate-700", "dark:text-slate-200");
+    }
+  });
+
+  // Sync header badge
+  const badge = document.getElementById("active-network-name-badge");
+  if (badge) {
+    if (netId === "all") {
+      badge.textContent = "All Networks (Cuelinks + CashKaro): Connected 🟢";
+    } else if (netId === "cashkaro") {
+      badge.textContent = "CashKaro Trackier: Connected 🟢";
+    } else if (netId === "cuelinks") {
+      badge.textContent = "Cuelinks API v3: Connected 🟢";
+    } else {
+      badge.textContent = `${netId.toUpperCase()}: Connected 🟢`;
+    }
+  }
 }
 
 let campaignDebounceTimer = null;
@@ -2476,6 +2495,7 @@ function setupCampaignFinderListeners() {
   const searchInput = document.getElementById("campaign-search-input");
   const btnClear = document.getElementById("btn-clear-campaign-search");
   const btnViewAll = document.getElementById("btn-view-all-campaigns");
+  const selectNetwork = document.getElementById("select-campaign-network");
   const selectCountry = document.getElementById("select-campaign-country");
   const selectCat = document.getElementById("select-campaign-category");
   const selectStatus = document.getElementById("select-campaign-status");
@@ -2494,6 +2514,7 @@ function setupCampaignFinderListeners() {
       }
     });
 
+    // Real-time active typing search (200ms debounce)
     searchInput.addEventListener("input", (e) => {
       campaignState.query = e.target.value.trim();
       if (btnClear) {
@@ -2524,6 +2545,14 @@ function setupCampaignFinderListeners() {
       if (searchInput) searchInput.value = "";
       campaignState.query = "";
       if (btnClear) btnClear.classList.add("hidden");
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  if (selectNetwork) {
+    selectNetwork.addEventListener("change", (e) => {
+      campaignState.network = e.target.value;
+      syncNetworkControls(e.target.value);
       fetchAndRenderCampaigns();
     });
   }
@@ -2569,7 +2598,7 @@ function setupCampaignFinderListeners() {
   const resetAll = () => {
     campaignState = {
       query: "",
-      network: "cuelinks",
+      network: "all",
       country: "in",
       category: "all",
       status: "all",
@@ -2577,10 +2606,12 @@ function setupCampaignFinderListeners() {
     };
     if (searchInput) searchInput.value = "";
     if (btnClear) btnClear.classList.add("hidden");
+    if (selectNetwork) selectNetwork.value = "all";
     if (selectCountry) selectCountry.value = "in";
     if (selectCat) selectCat.value = "all";
     if (selectStatus) selectStatus.value = "all";
     if (selectSort) selectSort.value = "epc_desc";
+    syncNetworkControls("all");
     fetchCampaignNetworks();
     fetchAndRenderCampaigns();
   };
@@ -2600,7 +2631,10 @@ function renderCampaignResults(data) {
   const results = data.results || [];
 
   if (countLabel) {
-    countLabel.textContent = `Showing ${results.length} live Cuelinks campaigns`;
+    let netDisplay = "All Networks (Cuelinks + CashKaro)";
+    if (campaignState.network === "cuelinks") netDisplay = "Cuelinks";
+    else if (campaignState.network === "cashkaro") netDisplay = "CashKaro";
+    countLabel.textContent = `Showing ${results.length} live campaigns across ${netDisplay}`;
   }
 
   // Check for Comparative Arbitrage Winner
@@ -2609,8 +2643,8 @@ function renderCampaignResults(data) {
     compareCallout.classList.remove("hidden");
     compareDesc.innerHTML = `
       <strong>${escapeHtml(bestWinner.brand_name)}</strong> is active across multiple networks! 
-      <strong>${escapeHtml(bestWinner.network_name)}</strong> pays the highest commission at 
-      <span class="text-emerald-400 font-bold">${escapeHtml(bestWinner.payout_display)}</span> 
+      <span class="text-emerald-400 font-bold">${escapeHtml(bestWinner.network_name)}</span> pays the highest commission at 
+      <span class="text-emerald-300 font-extrabold">${escapeHtml(bestWinner.payout_display)}</span> 
       (${escapeHtml(bestWinner.payout_diff_label)}).
     `;
   } else if (compareCallout) {
@@ -2636,7 +2670,7 @@ async function fetchAndRenderCampaigns() {
   const cardsGrid = document.getElementById("campaign-cards-grid");
   if (!cardsGrid) return;
 
-  const cacheKey = `${campaignState.query || ""}|${campaignState.country || "all"}|${campaignState.category || "all"}|${campaignState.status || "all"}|${campaignState.sort || "epc_desc"}`;
+  const cacheKey = `${campaignState.query || ""}|${campaignState.network || "all"}|${campaignState.country || "all"}|${campaignState.category || "all"}|${campaignState.status || "all"}|${campaignState.sort || "epc_desc"}`;
 
   // Instant render from client cache if available (0ms response)
   if (campaignClientCache.has(cacheKey)) {
@@ -2644,17 +2678,21 @@ async function fetchAndRenderCampaigns() {
     return;
   }
 
+  let netSearchLabel = "All Networks (Cuelinks + CashKaro)";
+  if (campaignState.network === "cuelinks") netSearchLabel = "Cuelinks API";
+  else if (campaignState.network === "cashkaro") netSearchLabel = "CashKaro Trackier";
+
   cardsGrid.innerHTML = `
     <div class="col-span-full py-12 text-center text-slate-400">
       <i class="ph ph-spinner animate-spin text-2xl text-sky-500"></i>
-      <p class="text-xs mt-2">Searching live Cuelinks campaigns...</p>
+      <p class="text-xs mt-2">Searching live ${escapeHtml(netSearchLabel)} campaigns...</p>
     </div>
   `;
 
   try {
     const params = new URLSearchParams({
       query: campaignState.query || "",
-      network: "cuelinks",
+      network: campaignState.network || "all",
       country: campaignState.country || "all",
       category: campaignState.category || "all",
       status: campaignState.status || "all",
@@ -2694,18 +2732,15 @@ function createCampaignCard(c) {
   let netColorClass = "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
   const nid = (c.network_id || "").toLowerCase();
   if (nid === "cuelinks") netColorClass = "bg-sky-500/15 text-sky-400 border-sky-500/30";
+  else if (nid === "cashkaro") netColorClass = "bg-rose-500/15 text-rose-400 border-rose-500/30";
   else if (nid === "admitad") netColorClass = "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
   else if (nid === "inrdeals") netColorClass = "bg-purple-500/15 text-purple-400 border-purple-500/30";
   else if (nid === "cj") netColorClass = "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  else if (nid === "cashkaro") netColorClass = "bg-rose-500/15 text-rose-400 border-rose-500/30";
-  else if (nid === "icubeswire") netColorClass = "bg-teal-500/15 text-teal-400 border-teal-500/30";
-  else if (nid === "pantech") netColorClass = "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
-  else if (nid === "zonet") netColorClass = "bg-blue-500/15 text-blue-400 border-blue-500/30";
 
   // Status badge
   let statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>Active</span></span>';
   if (c.status === "apply_required") {
-    statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Apply Required</span></span>';
+    statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Approval Needed</span></span>';
   } else if (c.status === "paused") {
     statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Paused</span></span>';
   }
@@ -2728,6 +2763,11 @@ function createCampaignCard(c) {
     ? `<img src="${escapeHtml(c.image_url)}" alt="${escapeHtml(c.brand_name)}" class="w-9 h-9 rounded-xl object-contain bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0" onerror="this.onerror=null; this.src=''; this.classList.add('hidden');" />`
     : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-sky-500/40">${brandInitial}</div>`;
 
+  const networkName = c.network_name || (nid === "cashkaro" ? "CashKaro" : "Cuelinks");
+  const panelUrl = c.panel_url || (nid === "cashkaro" 
+    ? `/api/campaigns/open?network=cashkaro&id=${encodeURIComponent(c.id)}` 
+    : `/api/campaigns/open?network=cuelinks&brand=${encodeURIComponent(c.brand_name)}`);
+
   card.innerHTML = `
     <div>
       ${bestBadgeHtml}
@@ -2744,7 +2784,7 @@ function createCampaignCard(c) {
           </div>
         </div>
         <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-wide shrink-0 ${netColorClass}">
-          ${escapeHtml(c.network_name)}
+          ${escapeHtml(networkName)}
         </span>
       </div>
 
@@ -2759,7 +2799,7 @@ function createCampaignCard(c) {
         <div class="flex items-center justify-between">
           <div>
             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Commission Payout</span>
-            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : 'text-sky-600 dark:text-sky-400'}">
+            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : (nid === 'cashkaro' ? 'text-rose-500 dark:text-rose-400' : 'text-sky-600 dark:text-sky-400')}">
               ${escapeHtml(c.payout_display)}
             </div>
           </div>
@@ -2771,7 +2811,7 @@ function createCampaignCard(c) {
 
       <!-- Description snippet -->
       <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-        ${escapeHtml(c.description || "Active Cuelinks v3 campaign offer.")}
+        ${escapeHtml(c.description || (nid === "cashkaro" ? "Live CashKaro Trackier offer." : "Active Cuelinks v3 campaign offer."))}
       </p>
 
       <!-- Metadata chips -->
@@ -2781,22 +2821,27 @@ function createCampaignCard(c) {
           <span>${c.cookie_days || '30 Days'} Cookie</span>
         </span>
         <span class="flex items-center space-x-1">
-          <i class="ph ph-chart-line-up text-xs text-emerald-400"></i>
-          <span>EPC: ₹${c.epc_7d || '0.0'}</span>
+          <i class="ph ph-globe text-xs text-slate-400"></i>
+          <span>${c.geo || 'India'}</span>
         </span>
+        ${c.epc_7d && c.epc_7d !== '0.0' ? `
+        <span class="flex items-center space-x-1">
+          <i class="ph ph-chart-line-up text-xs text-emerald-400"></i>
+          <span>EPC: ₹${c.epc_7d}</span>
+        </span>` : ''}
       </div>
     </div>
 
     <!-- 1-Click Action Buttons -->
     <div class="grid grid-cols-2 gap-2 pt-1">
       <a 
-        href="${escapeHtml(c.panel_url || ('/api/campaigns/open?brand=' + encodeURIComponent(c.brand_name)))}" 
+        href="${escapeHtml(panelUrl)}" 
         target="_blank" 
         rel="noopener noreferrer" 
         class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-xl text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 hover:bg-sky-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer text-center"
-        title="View verified campaign details on Cuelinks"
+        title="View verified campaign details on ${escapeHtml(networkName)}"
       >
-        <span>View on Cuelinks</span>
+        <span>View on ${escapeHtml(networkName)}</span>
         <i class="ph-bold ph-arrow-square-out text-xs"></i>
       </a>
       ${c.tracking_url ? `
@@ -2810,13 +2855,13 @@ function createCampaignCard(c) {
         <span>Copy Link</span>
       </button>` : `
       <a 
-        href="${escapeHtml(c.publisher_url || 'https://www.cuelinks.com/campaigns-explorer')}" 
+        href="${escapeHtml(c.publisher_url || panelUrl)}" 
         target="_blank" 
         rel="noopener noreferrer" 
         class="inline-flex items-center justify-center py-2 px-2 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20 text-center hover:bg-amber-500/20 transition cursor-pointer"
-        title="Apply for campaign on Cuelinks Publisher Dashboard"
+        title="${nid === 'cashkaro' ? 'Request Approval on CashKaro Trackier Portal' : 'Apply on Cuelinks Dashboard'}"
       >
-        <span>Apply on Dashboard</span>
+        <span>${nid === 'cashkaro' ? 'Request Approval' : 'Apply on Dashboard'}</span>
         <i class="ph-bold ph-arrow-square-out text-xs ml-1"></i>
       </a>`}
     </div>

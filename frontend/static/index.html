@@ -1305,17 +1305,17 @@
         <div class="text-center max-w-3xl mx-auto space-y-3 mb-8">
           <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Cuelinks Live Campaign Explorer • Official API v3</span>
+            <span>Universal Live Campaign Explorer • Cuelinks API v3 &amp; CashKaro Trackier Connected</span>
           </div>
           <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            1000+ Affiliate Programs and Campaigns
+            26,000+ Affiliate Programs &amp; Cross-Network Arbitrage
           </h2>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            Look-up your favourite brands or categories, and compare their commission rates. Or search using filters for categories (fashion, electronics etc.) or payout types (CPS, CPI etc.)
+            Search live campaigns across Cuelinks &amp; CashKaro simultaneously. Discover real-time commission rates, active tracking links, and find out which network pays the highest commission on your brand!
           </p>
         </div>
 
-        <!-- Integrated Search Bar & Country Dropdown -->
+        <!-- Integrated Search Bar, Network Dropdown & Country Dropdown -->
         <div class="max-w-3xl mx-auto space-y-4">
           <div class="flex flex-col sm:flex-row items-stretch border-2 border-sky-500 rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-[#060a14]">
             <!-- Search Text Input -->
@@ -1324,7 +1324,7 @@
               <input
                 id="campaign-search-input"
                 type="text"
-                placeholder="Search for Flipkart or Electronics or CPI etc"
+                placeholder="Search across all networks (e.g. Myntra, Air India, Asus, Flipkart)..."
                 class="w-full px-3.5 py-3.5 text-sm sm:text-base text-slate-900 dark:text-white placeholder-slate-400 bg-transparent focus:outline-none"
               />
               <button
@@ -1337,11 +1337,26 @@
               </button>
             </div>
 
+            <!-- Network Dropdown Divider -->
+            <div class="hidden sm:block w-px bg-slate-200 dark:bg-slate-700"></div>
+
+            <!-- Network Dropdown -->
+            <div class="sm:w-52 bg-slate-50 dark:bg-[#091122] flex items-center border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
+              <select
+                id="select-campaign-network"
+                class="w-full px-3 py-3 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 bg-transparent focus:outline-none cursor-pointer"
+              >
+                <option value="all" selected>🌐 All Networks</option>
+                <option value="cuelinks">🔗 Cuelinks</option>
+                <option value="cashkaro">⚡ CashKaro</option>
+              </select>
+            </div>
+
             <!-- Country Dropdown Divider -->
             <div class="hidden sm:block w-px bg-slate-200 dark:bg-slate-700"></div>
 
             <!-- Country Dropdown -->
-            <div class="sm:w-56 bg-slate-50 dark:bg-[#091122] flex items-center border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
+            <div class="sm:w-44 bg-slate-50 dark:bg-[#091122] flex items-center border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
               <select
                 id="select-campaign-country"
                 class="w-full px-3 py-3 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-transparent focus:outline-none cursor-pointer"
@@ -1359,7 +1374,7 @@
             </div>
           </div>
 
-          <!-- Big Green "VIEW ALL CAMPAIGNS" Button (Exact Match to Screenshot) -->
+          <!-- Big Green "VIEW ALL CAMPAIGNS" Button -->
           <div class="text-center pt-2">
             <button
               id="btn-view-all-campaigns"
@@ -1374,14 +1389,14 @@
           <!-- Quick Brand Chips -->
           <div class="flex flex-wrap items-center justify-center gap-1.5 pt-3 text-xs">
             <span class="text-slate-400 font-semibold mr-1">Popular:</span>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Myntra">Myntra</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Air India">Air India</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Asus">Asus</button>
             <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Flipkart">Flipkart</button>
             <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Amazon">Amazon</button>
-            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Myntra">Myntra</button>
-            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Ajio">Ajio</button>
-            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Nike">Nike</button>
-            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Samsung">Samsung</button>
-            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Puma">Puma</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Mivi">Mivi</button>
             <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Nykaa">Nykaa</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Ajio">Ajio</button>
             <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Swiggy">Swiggy</button>
           </div>
         </div>
@@ -1390,13 +1405,12 @@
       <!-- Network Filter Tabs & Sub-Filters -->
       <div class="space-y-3">
         <!-- Network Pills Bar -->
-        <div class="flex items-center justify-between pb-1">
-          <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-            <i class="ph-bold ph-shield-check text-emerald-500"></i>
-            <span>Active Exploration Source: Cuelinks Official API v3</span>
-          </p>
-          <span id="active-network-name-badge" class="text-xs font-semibold text-sky-600 dark:text-sky-400">
-            Cuelinks API: Connected 🟢
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+          <div id="campaign-network-pills" class="flex flex-wrap items-center gap-2">
+            <!-- Dynamically populated network pills: All Networks, Cuelinks, CashKaro -->
+          </div>
+          <span id="active-network-name-badge" class="text-xs font-semibold text-sky-600 dark:text-sky-400 shrink-0">
+            Cuelinks + CashKaro: Connected 🟢
           </span>
         </div>
 

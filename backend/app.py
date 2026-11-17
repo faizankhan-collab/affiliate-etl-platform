@@ -889,17 +889,18 @@ async def download_sample_file(filename: str):
 @app.get("/api/campaigns/search")
 async def api_search_campaigns(
     query: Optional[str] = None,
-    network: Optional[str] = "cuelinks",
+    network: Optional[str] = "all",
     country: Optional[str] = "all",
     category: Optional[str] = "all",
     status: Optional[str] = "all",
     sort: Optional[str] = "epc_desc",
     page: Optional[int] = 1,
 ):
-    """Search and filter live campaigns directly from Cuelinks Publisher API."""
+    """Search and filter live campaigns across Cuelinks and CashKaro."""
     try:
         return campaign_finder.search_campaigns(
             query=query,
+            network=network or "all",
             country=country,
             category=category,
             status=status,
@@ -912,7 +913,7 @@ async def api_search_campaigns(
 
 @app.get("/api/campaigns/networks")
 async def api_get_campaign_networks():
-    """Get active counts and metadata for Cuelinks API."""
+    """Get active counts and metadata for Cuelinks and CashKaro."""
     try:
         return campaign_finder.get_networks_summary()
     except Exception as e:
@@ -938,8 +939,22 @@ async def api_get_campaign_countries():
 
 
 @app.get("/api/campaigns/open")
-async def api_open_cuelinks_campaign(brand: Optional[str] = "", id: Optional[str] = ""):
-    """Redirect safely to verified Cuelinks campaign page or campaigns directory with ZERO 404s."""
+async def api_open_cuelinks_campaign(
+    network: Optional[str] = "cuelinks",
+    brand: Optional[str] = "",
+    id: Optional[str] = "",
+):
+    """Redirect safely to verified network campaign page or campaigns directory with ZERO 404s."""
+    if (network or "").lower() == "cashkaro":
+        if id:
+            return RedirectResponse(
+                url=f"https://cashkaro.trackier.io/publisher/campaign/{id}.html",
+                status_code=302,
+            )
+        return RedirectResponse(
+            url="https://cashkaro.trackier.io/publisher/campaigns",
+            status_code=302,
+        )
     target_url = campaign_finder.get_cuelinks_url(brand or "")
     return RedirectResponse(url=target_url, status_code=302)
 
