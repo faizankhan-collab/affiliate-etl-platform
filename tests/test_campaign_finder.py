@@ -1,6 +1,7 @@
 import asyncio
 import unittest
 from unittest.mock import patch, MagicMock
+import requests
 from backend.campaign_finder import CampaignFinderService
 from backend.app import (
     api_search_campaigns,
@@ -29,7 +30,7 @@ class TestCuelinksCampaignFinder(unittest.TestCase):
         self.assertIn("Fashion", cat_ids)
         self.assertIn("Electronics", cat_ids)
 
-    @patch("backend.campaign_finder.requests.get")
+    @patch.object(requests.Session, "get")
     def test_search_campaigns_with_mocked_live_response(self, mock_get):
         # Mock actual Cuelinks v3 response format
         mock_resp = MagicMock()
@@ -73,6 +74,38 @@ class TestCuelinksCampaignFinder(unittest.TestCase):
         resp = asyncio.run(read_campaigns_view())
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Cuelinks Live Campaign Explorer", resp.body.decode("utf-8"))
+
+    @patch.object(requests.Session, "get")
+    def test_smart_search_spacing_tolerance(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": [
+                {
+                    "id": 5622,
+                    "name": "Airindia",
+                    "domain": "airindia.com",
+                    "payout": "400.0",
+                    "payout_type": "Per Sale",
+                    "payout_currency": "INR",
+                    "campaign_type": "CPS",
+                    "access_status": "open",
+                    "categories": [{"id": 5, "name": "Travel"}],
+                    "countries": [{"id": 252, "name": "India"}],
+                    "cookie_duration": "30 days",
+                    "epc_7d": "0.75",
+                    "tracking_url": "https://linksredirect.com/?cid=33273&url=airindia",
+                }
+            ],
+            "meta": {"total": 1, "page": 1, "per_page": 30}
+        }
+        mock_get.return_value = mock_resp
+
+        # Searching with space 'air india' should find 'Airindia' as top result
+        res = self.service.search_campaigns(query="air india")
+        self.assertTrue(res["success"])
+        self.assertGreaterEqual(len(res["results"]), 1)
+        self.assertEqual(res["results"][0]["brand_name"], "Airindia")
 
 
 if __name__ == "__main__":

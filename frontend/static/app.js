@@ -2470,6 +2470,7 @@ function renderNetworkPills(networks) {
 }
 
 let campaignDebounceTimer = null;
+const campaignClientCache = new Map();
 
 function setupCampaignFinderListeners() {
   const searchInput = document.getElementById("campaign-search-input");
@@ -2483,6 +2484,16 @@ function setupCampaignFinderListeners() {
   const btnEmptyReset = document.getElementById("btn-empty-reset");
 
   if (searchInput) {
+    // Instant search on Enter key
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        clearTimeout(campaignDebounceTimer);
+        campaignState.query = e.target.value.trim();
+        fetchAndRenderCampaigns();
+      }
+    });
+
     searchInput.addEventListener("input", (e) => {
       campaignState.query = e.target.value.trim();
       if (btnClear) {
@@ -2495,7 +2506,7 @@ function setupCampaignFinderListeners() {
       clearTimeout(campaignDebounceTimer);
       campaignDebounceTimer = setTimeout(() => {
         fetchAndRenderCampaigns();
-      }, 250);
+      }, 200);
     });
   }
 
@@ -2578,7 +2589,7 @@ function setupCampaignFinderListeners() {
   if (btnEmptyReset) btnEmptyReset.addEventListener("click", resetAll);
 }
 
-async function fetchAndRenderCampaigns() {
+function renderCampaignResults(data) {
   const cardsGrid = document.getElementById("campaign-cards-grid");
   const emptyState = document.getElementById("campaign-empty-state");
   const countLabel = document.getElementById("campaign-results-count");
@@ -2586,11 +2597,57 @@ async function fetchAndRenderCampaigns() {
   const compareDesc = document.getElementById("compare-callout-desc");
 
   if (!cardsGrid) return;
+  const results = data.results || [];
+
+  if (countLabel) {
+    countLabel.textContent = `Showing ${results.length} live Cuelinks campaigns`;
+  }
+
+  // Check for Comparative Arbitrage Winner
+  const bestWinner = results.find(r => r.is_best_payout && r.payout_diff_label);
+  if (bestWinner && compareCallout && compareDesc) {
+    compareCallout.classList.remove("hidden");
+    compareDesc.innerHTML = `
+      <strong>${escapeHtml(bestWinner.brand_name)}</strong> is active across multiple networks! 
+      <strong>${escapeHtml(bestWinner.network_name)}</strong> pays the highest commission at 
+      <span class="text-emerald-400 font-bold">${escapeHtml(bestWinner.payout_display)}</span> 
+      (${escapeHtml(bestWinner.payout_diff_label)}).
+    `;
+  } else if (compareCallout) {
+    compareCallout.classList.add("hidden");
+  }
+
+  if (results.length === 0) {
+    cardsGrid.innerHTML = "";
+    if (emptyState) emptyState.classList.remove("hidden");
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add("hidden");
+  cardsGrid.innerHTML = "";
+
+  results.forEach(c => {
+    const card = createCampaignCard(c);
+    cardsGrid.appendChild(card);
+  });
+}
+
+async function fetchAndRenderCampaigns() {
+  const cardsGrid = document.getElementById("campaign-cards-grid");
+  if (!cardsGrid) return;
+
+  const cacheKey = `${campaignState.query || ""}|${campaignState.country || "all"}|${campaignState.category || "all"}|${campaignState.status || "all"}|${campaignState.sort || "epc_desc"}`;
+
+  // Instant render from client cache if available (0ms response)
+  if (campaignClientCache.has(cacheKey)) {
+    renderCampaignResults(campaignClientCache.get(cacheKey));
+    return;
+  }
 
   cardsGrid.innerHTML = `
     <div class="col-span-full py-12 text-center text-slate-400">
-      <i class="ph ph-spinner animate-spin text-2xl text-indigo-500"></i>
-      <p class="text-xs mt-2">Searching live affiliate networks...</p>
+      <i class="ph ph-spinner animate-spin text-2xl text-sky-500"></i>
+      <p class="text-xs mt-2">Searching live Cuelinks campaigns...</p>
     </div>
   `;
 
@@ -2607,39 +2664,8 @@ async function fetchAndRenderCampaigns() {
     const res = await fetch(`/api/campaigns/search?${params.toString()}`);
     if (!res.ok) throw new Error("Search request failed");
     const data = await res.json();
-    const results = data.results || [];
-
-    if (countLabel) {
-      countLabel.textContent = `Showing ${results.length} live Cuelinks campaigns`;
-    }
-
-    // Check for Comparative Arbitrage Winner
-    const bestWinner = results.find(r => r.is_best_payout && r.payout_diff_label);
-    if (bestWinner && compareCallout && compareDesc) {
-      compareCallout.classList.remove("hidden");
-      compareDesc.innerHTML = `
-        <strong>${escapeHtml(bestWinner.brand_name)}</strong> is active across multiple networks! 
-        <strong>${escapeHtml(bestWinner.network_name)}</strong> pays the highest commission at 
-        <span class="text-emerald-400 font-bold">${escapeHtml(bestWinner.payout_display)}</span> 
-        (${escapeHtml(bestWinner.payout_diff_label)}).
-      `;
-    } else if (compareCallout) {
-      compareCallout.classList.add("hidden");
-    }
-
-    if (results.length === 0) {
-      cardsGrid.innerHTML = "";
-      if (emptyState) emptyState.classList.remove("hidden");
-      return;
-    }
-
-    if (emptyState) emptyState.classList.add("hidden");
-    cardsGrid.innerHTML = "";
-
-    results.forEach(c => {
-      const card = createCampaignCard(c);
-      cardsGrid.appendChild(card);
-    });
+    campaignClientCache.set(cacheKey, data);
+    renderCampaignResults(data);
 
   } catch (err) {
     console.error("Error searching campaigns:", err);

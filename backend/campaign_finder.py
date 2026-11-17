@@ -9,8 +9,10 @@ from pathlib import Path
 import re
 import time
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 import requests
+from requests.adapters import HTTPAdapter
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -43,10 +45,71 @@ class CampaignFinderService:
             "Accept": "application/json",
             "User-Agent": "Buyhatke-ETL/1.0",
         }
+        # Reusable HTTP Session with keep-alive & connection pooling for speed
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
+        adapter = HTTPAdapter(pool_connections=20, pool_maxsize=20, max_retries=1)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
         # In-memory cache for live responses: {cache_key: (timestamp, data)}
         self._cache: Dict[str, tuple] = {}
         self._cache_ttl = 300  # 5 minutes
         self._slug_cache: Dict[str, bool] = {}
+
+    def _generate_search_terms(self, query: str) -> List[str]:
+        """
+        Generate smart query permutations for Cuelinks API to overcome spacing and casing quirks.
+        e.g., 'air india' -> ['air india', 'airindia', 'AirIndia', 'Air India']
+              'makemytrip' -> ['makemytrip', 'MakeMyTrip', 'Make My Trip']
+              'tata cliq'  -> ['tata cliq', 'tatacliq', 'TataCliq', 'Tata Cliq']
+        """
+        q = query.strip()
+        if not q:
+            return []
+
+        terms = [q]
+
+        # 1. Spaceless variant (e.g. 'air india' -> 'airindia')
+        spaceless = q.replace(" ", "")
+        if spaceless and spaceless not in terms:
+            terms.append(spaceless)
+
+        # 2. PascalCase / Title with no spaces (e.g. 'air india' -> 'AirIndia')
+        pascal = "".join(w.capitalize() for w in q.split())
+        if pascal and pascal not in terms:
+            terms.append(pascal)
+
+        # 3. CamelCase to Spaced (e.g. 'AirIndia' -> 'Air India', 'MakeMyTrip' -> 'Make My Trip')
+        camel_split = re.sub(r"([a-z])([A-Z])", r"\1 \2", q)
+        if camel_split != q and camel_split not in terms:
+            terms.append(camel_split)
+
+        # 4. Standard Title Case (e.g. 'air india' -> 'Air India')
+        title_case = q.title()
+        if title_case not in terms:
+            terms.append(title_case)
+
+        # 5. Lowercase (e.g. 'Air India' -> 'air india')
+        lower_case = q.lower()
+        if lower_case not in terms:
+            terms.append(lower_case)
+
+        # 6. Hyphen variations (e.g. 'air-india' -> 'air india')
+        no_hyphen = q.replace("-", " ").strip()
+        if no_hyphen != q and no_hyphen not in terms:
+            terms.append(no_hyphen)
+
+        # Deduplicate while preserving order and limit to top 5
+        seen = set()
+        deduped = []
+        for t in terms:
+            if t and t not in seen:
+                seen.add(t)
+                deduped.append(t)
+            if len(deduped) >= 5:
+                break
+        return deduped
 
     def get_cuelinks_url(self, brand_name: str, domain: str = "") -> str:
         """
@@ -162,60 +225,48 @@ class CampaignFinderService:
             total_count = 0
 
             if q_clean:
-                # Cuelinks API Behavior:
-                # 1. Do NOT pass 'per_page' or 'sort' when 'q' is passed, or Cuelinks ignores 'q'.
-                # 2. Cuelinks database search is case-sensitive for certain merchants, so try both as-is and title-case.
-                search_attempts = [q_clean]
-                if q_clean.title() != q_clean:
-                    search_attempts.append(q_clean.title())
-                if q_clean.capitalize() not in search_attempts:
-                    search_attempts.append(q_clean.capitalize())
+                # Fast & Smart Parallel Search across intelligent permutations
+                # Handles casing & spacing gaps (e.g. 'air india' <-> 'Airindia', 'make my trip' <-> 'Makemytrip')
+                search_terms = self._generate_search_terms(q_clean)
 
-                found = False
-                for term in search_attempts:
+                def fetch_term(term: str):
                     p = {"q": term, "page": page}
                     if target_country_id:
                         p["country_id"] = target_country_id
+                    try:
+                        resp = self.session.get(
+                            CUELINKS_API_V3_URL,
+                            params=p,
+                            timeout=6,
+                        )
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            tot = data.get("meta", {}).get("total", 0)
+                            items = data.get("data", [])
+                            # Exclude full catalog dump (> 15000 items is returned when Cuelinks has 0 matches)
+                            if 0 < tot < 15000:
+                                return data.get("meta", {}), items
+                    except Exception:
+                        pass
+                    return {}, []
 
-                    resp = requests.get(
-                        CUELINKS_API_V3_URL,
-                        headers=self.headers,
-                        params=p,
-                        timeout=12,
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        tot = data.get("meta", {}).get("total", 0)
-                        items = data.get("data", [])
-                        # Cuelinks returns full catalog (26500+) if query failed to match
-                        if 0 < tot < 20000:
-                            raw_items = items
-                            meta = data.get("meta", {})
-                            total_count = tot
-                            found = True
-                            break
-                        elif tot > 0 and not found:
-                            # Keep as candidate if exact match appears inside
-                            raw_items = items
-                            meta = data.get("meta", {})
-                            total_count = tot
+                # Execute all candidate queries concurrently in parallel for blazing speed
+                item_map = {}
+                best_meta = {}
+                with ThreadPoolExecutor(max_workers=min(5, len(search_terms))) as executor:
+                    future_to_term = {executor.submit(fetch_term, t): t for t in search_terms}
+                    for future in as_completed(future_to_term):
+                        m, items = future.result()
+                        if m and not best_meta:
+                            best_meta = m
+                        for it in items:
+                            cid = it.get("id")
+                            if cid and cid not in item_map:
+                                item_map[cid] = it
 
-                if not found and not raw_items:
-                    # Final attempt with lowercase
-                    p = {"q": q_clean.lower(), "page": page}
-                    if target_country_id:
-                        p["country_id"] = target_country_id
-                    resp = requests.get(
-                        CUELINKS_API_V3_URL,
-                        headers=self.headers,
-                        params=p,
-                        timeout=10,
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        raw_items = data.get("data", [])
-                        meta = data.get("meta", {})
-                        total_count = meta.get("total", len(raw_items))
+                raw_items = list(item_map.values())
+                meta = best_meta or {"total": len(raw_items), "page": page, "per_page": 30}
+                total_count = len(raw_items)
 
             else:
                 # Browse mode (e.g. "VIEW ALL CAMPAIGNS" or initial page load)
@@ -229,11 +280,10 @@ class CampaignFinderService:
                 if target_country_id:
                     browse_params["country_id"] = target_country_id
 
-                resp = requests.get(
+                resp = self.session.get(
                     CUELINKS_API_V3_URL,
-                    headers=self.headers,
                     params=browse_params,
-                    timeout=12,
+                    timeout=10,
                 )
                 if resp.status_code == 200:
                     json_data = resp.json()
@@ -343,29 +393,43 @@ class CampaignFinderService:
                     "is_featured": item.get("is_featured", False),
                 })
 
-            # Smart sorting:
+            # Smart ranking & fuzzy matching for gap/spacing/casing tolerance
             if q_clean:
-                q_lower = q_clean.lower()
+                q_norm = re.sub(r"[^a-z0-9]", "", q_clean.lower())
+                q_words = [w for w in re.split(r"\s+", q_clean.lower()) if len(w) >= 2]
+
                 def match_rank(item: Dict[str, Any]) -> tuple:
-                    name = item.get("brand_name", "").lower()
-                    title = item.get("campaign_title", "").lower()
-                    domain = item.get("domain", "").lower()
+                    name = item.get("brand_name", "")
+                    title = item.get("campaign_title", "")
+                    domain = item.get("domain", "")
                     try:
                         epc = float(item.get("epc_7d", 0.0) or 0.0)
                     except Exception:
                         epc = 0.0
-                    
-                    if name == q_lower:
-                        priority = 0
-                    elif name.startswith(q_lower):
-                        priority = 1
-                    elif q_lower in name:
-                        priority = 2
-                    elif q_lower in domain or q_lower in title:
-                        priority = 3
-                    else:
-                        priority = 4
-                    return (priority, -epc)
+
+                    b_norm = re.sub(r"[^a-z0-9]", "", name.lower())
+                    d_norm = re.sub(r"[^a-z0-9]", "", domain.lower())
+                    b_lower = name.lower()
+
+                    # Exact match (spaces and casing ignored, e.g. 'air india' == 'Airindia')
+                    if b_norm == q_norm:
+                        return (0, -epc)
+                    # Prefix match (e.g. 'air india express')
+                    if b_norm.startswith(q_norm) or (len(b_norm) >= 3 and q_norm.startswith(b_norm)):
+                        return (1, -epc)
+                    # All words in brand name (e.g. 'air' and 'india' in 'Air India Express')
+                    if len(q_words) > 1 and all(w in b_lower for w in q_words):
+                        return (2, -epc)
+                    # Substring match
+                    if q_norm in b_norm:
+                        return (3, -epc)
+                    # Domain / Title match
+                    if q_norm in d_norm or (q_norm and q_norm in re.sub(r"[^a-z0-9]", "", title.lower())):
+                        return (4, -epc)
+                    # Any prominent word match
+                    if any(len(w) >= 3 and w in b_lower for w in q_words):
+                        return (5, -epc)
+                    return (6, -epc)
 
                 formatted_results.sort(key=match_rank)
             elif sort_by == "payout_desc":
