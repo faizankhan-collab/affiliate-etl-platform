@@ -66,7 +66,7 @@ class TestCuelinksCampaignFinder(unittest.TestCase):
         self.assertEqual(item["network_id"], "cuelinks")
         self.assertEqual(item["status"], "active")
         self.assertIn("6.8%", item["payout_display"])
-        self.assertIn("https://www.cuelinks.com/campaigns/1", item["panel_url"])
+        self.assertEqual(item["panel_url"], "https://www.cuelinks.com/campaigns/flipkart-affiliate-program")
         self.assertIn("linksredirect.com", item["tracking_url"])
 
     def test_campaigns_html_page_route(self):

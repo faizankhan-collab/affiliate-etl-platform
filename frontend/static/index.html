@@ -1300,77 +1300,89 @@
     <!-- 4. VIEW: Universal Affiliate Campaign Finder Page -->
     <div id="view-campaigns" class="hidden space-y-6">
 
-      <!-- Hero Search Section -->
-      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/30 p-6 sm:p-8 shadow-2xl shadow-indigo-950/50">
-        <!-- Background Ambient Glow -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <!-- Hero Search Section (Matching Cuelinks Campaign Explorer UI) -->
+      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#0c1424] border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-xl">
+        <div class="text-center max-w-3xl mx-auto space-y-3 mb-8">
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Cuelinks Live Campaign Explorer • Official API v3</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            1000+ Affiliate Programs and Campaigns
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            Look-up your favourite brands or categories, and compare their commission rates. Or search using filters for categories (fashion, electronics etc.) or payout types (CPS, CPI etc.)
+          </p>
+        </div>
 
-        <div class="relative z-10 space-y-5">
-          <!-- Top Badge & Heading -->
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-                <i class="ph-bold ph-link text-sm"></i>
-                <span>Official Cuelinks API v3 • Live Publisher Stream</span>
-              </span>
-              <h2 class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">
-                Cuelinks Live Campaign Explorer
-              </h2>
-              <p class="text-sm text-slate-300 mt-1 max-w-3xl">
-                Search and explore over 26,450+ active merchant campaigns directly from Cuelinks' live production servers. 100% verified real-time commissions, tracking links, and EPC.
-              </p>
+        <!-- Integrated Search Bar & Country Dropdown -->
+        <div class="max-w-3xl mx-auto space-y-4">
+          <div class="flex flex-col sm:flex-row items-stretch border-2 border-sky-500 rounded-2xl overflow-hidden shadow-lg bg-white dark:bg-[#060a14]">
+            <!-- Search Text Input -->
+            <div class="relative flex-1 flex items-center">
+              <i class="ph-bold ph-magnifying-glass text-slate-400 dark:text-slate-500 text-lg ml-4 pointer-events-none"></i>
+              <input
+                id="campaign-search-input"
+                type="text"
+                placeholder="Search for Flipkart or Electronics or CPI etc"
+                class="w-full px-3.5 py-3.5 text-sm sm:text-base text-slate-900 dark:text-white placeholder-slate-400 bg-transparent focus:outline-none"
+              />
+              <button
+                id="btn-clear-campaign-search"
+                type="button"
+                class="hidden pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
+                title="Clear search"
+              >
+                <i class="ph-bold ph-x-circle text-lg"></i>
+              </button>
             </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-xs text-slate-400 font-medium">Status:</span>
-              <span id="catalog-total-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>26,450+ Live Offers</span>
-              </span>
+
+            <!-- Country Dropdown Divider -->
+            <div class="hidden sm:block w-px bg-slate-200 dark:bg-slate-700"></div>
+
+            <!-- Country Dropdown -->
+            <div class="sm:w-56 bg-slate-50 dark:bg-[#091122] flex items-center border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
+              <select
+                id="select-campaign-country"
+                class="w-full px-3 py-3 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-transparent focus:outline-none cursor-pointer"
+              >
+                <option value="all">-- All Countries --</option>
+                <option value="in" selected>🇮🇳 India</option>
+                <option value="us">🇺🇸 United States</option>
+                <option value="ae">🇦🇪 United Arab Emirates</option>
+                <option value="gb">🇬🇧 United Kingdom</option>
+                <option value="sg">🇸🇬 Singapore</option>
+                <option value="ca">🇨🇦 Canada</option>
+                <option value="de">🇩🇪 Germany</option>
+                <option value="au">🇦🇺 Australia</option>
+              </select>
             </div>
           </div>
 
-          <!-- Hero Search Box -->
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-400">
-              <i class="ph-bold ph-magnifying-glass text-xl"></i>
-            </div>
-            <input
-              id="campaign-search-input"
-              type="text"
-              placeholder="Search live Cuelinks campaigns (e.g. Flipkart, Amazon, Myntra, Ajio, Nike, Samsung, Swiggy...)"
-              class="w-full pl-12 pr-12 py-3.5 text-sm sm:text-base bg-slate-900/90 dark:bg-[#070b14]/95 text-white placeholder-slate-400 border border-sky-500/40 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition shadow-inner"
-            />
+          <!-- Big Green "VIEW ALL CAMPAIGNS" Button (Exact Match to Screenshot) -->
+          <div class="text-center pt-2">
             <button
-              id="btn-clear-campaign-search"
+              id="btn-view-all-campaigns"
               type="button"
-              class="hidden absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white transition cursor-pointer"
-              title="Clear search"
+              class="inline-flex items-center space-x-2 px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-600/30 transition cursor-pointer"
             >
-              <i class="ph-bold ph-x-circle text-xl"></i>
+              <i class="ph-bold ph-lightning text-base"></i>
+              <span>VIEW ALL CAMPAIGNS</span>
             </button>
           </div>
 
           <!-- Quick Brand Chips -->
-          <div class="flex flex-wrap items-center gap-2 pt-1">
-            <span class="text-xs font-semibold text-slate-400 mr-1 flex items-center space-x-1">
-              <i class="ph-bold ph-fire text-amber-400"></i>
-              <span>Popular Brands:</span>
-            </span>
-            <div id="quick-brand-chips" class="flex flex-wrap gap-1.5">
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Flipkart">Flipkart</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Amazon">Amazon</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Myntra">Myntra</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Ajio">Ajio</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nike">Nike</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Samsung">Samsung</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Puma">Puma</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Tata CliQ">Tata CliQ</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Nykaa">Nykaa</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="MakeMyTrip">MakeMyTrip</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Swiggy">Swiggy</button>
-              <button type="button" class="quick-chip px-2.5 py-1 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 border border-white/10 transition cursor-pointer" data-brand="Dominos">Dominos</button>
-            </div>
+          <div class="flex flex-wrap items-center justify-center gap-1.5 pt-3 text-xs">
+            <span class="text-slate-400 font-semibold mr-1">Popular:</span>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Flipkart">Flipkart</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Amazon">Amazon</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Myntra">Myntra</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Ajio">Ajio</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Nike">Nike</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Samsung">Samsung</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Puma">Puma</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Nykaa">Nykaa</button>
+            <button type="button" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-400 transition cursor-pointer font-medium" data-brand="Swiggy">Swiggy</button>
           </div>
         </div>
       </div>
@@ -1381,41 +1393,33 @@
         <div class="flex items-center justify-between pb-1">
           <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
             <i class="ph-bold ph-shield-check text-emerald-500"></i>
-            <span>Connected Affiliate Network (Direct Live API Stream)</span>
+            <span>Active Exploration Source: Cuelinks Official API v3</span>
           </p>
           <span id="active-network-name-badge" class="text-xs font-semibold text-sky-600 dark:text-sky-400">
             Cuelinks API: Connected 🟢
           </span>
         </div>
 
-        <div id="campaign-network-pills" class="flex flex-wrap gap-2">
-          <!-- Live connected network -->
-          <button type="button" class="network-pill active px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer border border-sky-600 bg-sky-600 text-white shadow-md shadow-sky-600/30" data-network="cuelinks">
-            🔗 Cuelinks (Live Official API v3) <span class="ml-1 opacity-90 font-black">(26,450+ Offers)</span>
-          </button>
-        </div>
-
         <!-- Filter Dropdowns Row -->
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1 border-t border-slate-200 dark:border-slate-800/80">
           <div class="flex flex-wrap items-center gap-2">
             <!-- Category Filter -->
-            <select id="select-campaign-category" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+            <select id="select-campaign-category" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer">
               <option value="all">All Categories</option>
-              <option value="Marketplace">Marketplaces</option>
               <option value="Fashion">Fashion & Apparel</option>
+              <option value="Health & Beauty">Health & Beauty</option>
               <option value="Electronics">Electronics & Gadgets</option>
-              <option value="Sports & Footwear">Sports & Footwear</option>
-              <option value="Beauty & Health">Beauty & Health</option>
-              <option value="Travel">Travel & Bookings</option>
-              <option value="Finance & Cards">Finance & Credit Cards</option>
-              <option value="Tech & Software">Tech & Software</option>
-              <option value="Food & Dining">Food & Dining</option>
+              <option value="Food & Grocery">Food & Grocery</option>
+              <option value="Travel">Travel & Booking</option>
+              <option value="Home & Kitchen">Home & Kitchen</option>
+              <option value="Education">Education</option>
+              <option value="Sports">Sports</option>
             </select>
 
             <!-- Status Filter -->
-            <select id="select-campaign-status" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+            <select id="select-campaign-status" class="px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer">
               <option value="all">All Statuses</option>
-              <option value="active">🟢 Live / Active</option>
+              <option value="active">🟢 Active / Open to All</option>
               <option value="apply_required">🟡 Application Required</option>
               <option value="paused">🔴 Paused</option>
             </select>
@@ -1424,10 +1428,10 @@
           <div class="flex items-center space-x-2">
             <!-- Sort By -->
             <span class="text-xs text-slate-500 dark:text-slate-400">Sort:</span>
-            <select id="select-campaign-sort" class="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
-              <option value="payout_desc">🏆 Highest Payout First</option>
+            <select id="select-campaign-sort" class="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer">
+              <option value="epc_desc">⚡ Highest EPC (7-Day Average)</option>
+              <option value="payout_desc">💰 Highest Payout Rate</option>
               <option value="name_asc">🔤 Brand Name (A-Z)</option>
-              <option value="network_asc">🌐 Network Name (A-Z)</option>
             </select>
           </div>
         </div>

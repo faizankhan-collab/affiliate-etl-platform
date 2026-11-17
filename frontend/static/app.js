@@ -2387,10 +2387,11 @@ function setLoading(isLoading, text = "Processing...") {
 
 let campaignState = {
   query: "",
-  network: "all",
+  network: "cuelinks",
+  country: "in",
   category: "all",
   status: "all",
-  sort: "payout_desc"
+  sort: "epc_desc"
 };
 let isCampaignFinderInitialized = false;
 
@@ -2473,6 +2474,8 @@ let campaignDebounceTimer = null;
 function setupCampaignFinderListeners() {
   const searchInput = document.getElementById("campaign-search-input");
   const btnClear = document.getElementById("btn-clear-campaign-search");
+  const btnViewAll = document.getElementById("btn-view-all-campaigns");
+  const selectCountry = document.getElementById("select-campaign-country");
   const selectCat = document.getElementById("select-campaign-category");
   const selectStatus = document.getElementById("select-campaign-status");
   const selectSort = document.getElementById("select-campaign-sort");
@@ -2501,6 +2504,22 @@ function setupCampaignFinderListeners() {
       if (searchInput) searchInput.value = "";
       campaignState.query = "";
       btnClear.classList.add("hidden");
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  if (btnViewAll) {
+    btnViewAll.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      campaignState.query = "";
+      if (btnClear) btnClear.classList.add("hidden");
+      fetchAndRenderCampaigns();
+    });
+  }
+
+  if (selectCountry) {
+    selectCountry.addEventListener("change", (e) => {
+      campaignState.country = e.target.value;
       fetchAndRenderCampaigns();
     });
   }
@@ -2539,16 +2558,18 @@ function setupCampaignFinderListeners() {
   const resetAll = () => {
     campaignState = {
       query: "",
-      network: "all",
+      network: "cuelinks",
+      country: "in",
       category: "all",
       status: "all",
-      sort: "payout_desc"
+      sort: "epc_desc"
     };
     if (searchInput) searchInput.value = "";
     if (btnClear) btnClear.classList.add("hidden");
+    if (selectCountry) selectCountry.value = "in";
     if (selectCat) selectCat.value = "all";
     if (selectStatus) selectStatus.value = "all";
-    if (selectSort) selectSort.value = "payout_desc";
+    if (selectSort) selectSort.value = "epc_desc";
     fetchCampaignNetworks();
     fetchAndRenderCampaigns();
   };
@@ -2575,11 +2596,12 @@ async function fetchAndRenderCampaigns() {
 
   try {
     const params = new URLSearchParams({
-      query: campaignState.query,
-      network: campaignState.network,
-      category: campaignState.category,
-      status: campaignState.status,
-      sort: campaignState.sort
+      query: campaignState.query || "",
+      network: "cuelinks",
+      country: campaignState.country || "all",
+      category: campaignState.category || "all",
+      status: campaignState.status || "all",
+      sort: campaignState.sort || "epc_desc"
     });
 
     const res = await fetch(`/api/campaigns/search?${params.toString()}`);
@@ -2588,8 +2610,7 @@ async function fetchAndRenderCampaigns() {
     const results = data.results || [];
 
     if (countLabel) {
-      const netCount = data.networks_in_results ? data.networks_in_results.length : 1;
-      countLabel.textContent = `Showing ${results.length} campaigns across ${netCount} network${netCount !== 1 ? 's' : ''}`;
+      countLabel.textContent = `Showing ${results.length} live Cuelinks campaigns`;
     }
 
     // Check for Comparative Arbitrage Winner
@@ -2741,33 +2762,64 @@ function createCampaignCard(c) {
     </div>
 
     <!-- 1-Click Action Buttons -->
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-2 gap-2 pt-1">
       <a 
-        href="${escapeHtml(c.panel_url || 'https://www.cuelinks.com/campaigns')}" 
+        href="${escapeHtml(c.panel_url || ('/api/campaigns/open?brand=' + encodeURIComponent(c.brand_name)))}" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="inline-flex items-center justify-center space-x-1 py-2 px-2 rounded-xl text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 hover:bg-sky-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer text-center"
+        class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-xl text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 hover:bg-sky-600 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer text-center"
+        title="View verified campaign details on Cuelinks"
       >
         <span>View on Cuelinks</span>
         <i class="ph-bold ph-arrow-square-out text-xs"></i>
       </a>
       ${c.tracking_url ? `
+      <button 
+        type="button" 
+        onclick="copyCampaignLink(this, '${escapeHtml(c.tracking_url)}')" 
+        class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-xl text-[11px] font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-xs transition cursor-pointer text-center"
+        title="Copy live tracking affiliate link"
+      >
+        <i class="ph-bold ph-copy text-xs"></i>
+        <span>Copy Link</span>
+      </button>` : `
       <a 
-        href="${escapeHtml(c.tracking_url)}" 
+        href="${escapeHtml(c.publisher_url || 'https://www.cuelinks.com/campaigns-explorer')}" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="inline-flex items-center justify-center space-x-1 py-2 px-2 rounded-xl text-[11px] font-bold bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-xs transition cursor-pointer text-center"
+        class="inline-flex items-center justify-center py-2 px-2 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20 text-center hover:bg-amber-500/20 transition cursor-pointer"
+        title="Apply for campaign on Cuelinks Publisher Dashboard"
       >
-        <span>Live Link</span>
-        <i class="ph-bold ph-link text-xs"></i>
-      </a>` : `
-      <span class="inline-flex items-center justify-center py-2 px-2 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-slate-800/50 text-slate-400 border border-slate-200 dark:border-slate-800 text-center">
-        Apply to Unlock
-      </span>`}
+        <span>Apply on Dashboard</span>
+        <i class="ph-bold ph-arrow-square-out text-xs ml-1"></i>
+      </a>`}
     </div>
-      <i class="ph-bold ph-arrow-square-out text-sm"></i>
-    </a>
   `;
 
   return card;
+}
+
+window.copyCampaignLink = function(btn, url) {
+  if (!url) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => showCopiedFeedback(btn));
+  } else {
+    const el = document.createElement("textarea");
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    showCopiedFeedback(btn);
+  }
+};
+
+function showCopiedFeedback(btn) {
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = `<i class="ph-bold ph-check text-xs"></i><span>Copied!</span>`;
+  btn.classList.add("bg-emerald-700");
+  setTimeout(() => {
+    btn.innerHTML = origHtml;
+    btn.classList.remove("bg-emerald-700");
+  }, 1800);
 }

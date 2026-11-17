@@ -6,7 +6,7 @@ import os
 from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
 from pydantic import BaseModel
@@ -889,19 +889,22 @@ async def download_sample_file(filename: str):
 @app.get("/api/campaigns/search")
 async def api_search_campaigns(
     query: Optional[str] = None,
-    network: Optional[str] = "all",
+    network: Optional[str] = "cuelinks",
+    country: Optional[str] = "all",
     category: Optional[str] = "all",
     status: Optional[str] = "all",
-    sort: Optional[str] = "payout_desc",
+    sort: Optional[str] = "epc_desc",
+    page: Optional[int] = 1,
 ):
-    """Search and filter live campaigns across all connected affiliate networks."""
+    """Search and filter live campaigns directly from Cuelinks Publisher API."""
     try:
         return campaign_finder.search_campaigns(
             query=query,
-            network=network,
+            country=country,
             category=category,
             status=status,
             sort_by=sort,
+            page=page or 1,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Campaign search error: {str(e)}")
@@ -909,7 +912,7 @@ async def api_search_campaigns(
 
 @app.get("/api/campaigns/networks")
 async def api_get_campaign_networks():
-    """Get active counts and metadata for all 8 supported affiliate networks."""
+    """Get active counts and metadata for Cuelinks API."""
     try:
         return campaign_finder.get_networks_summary()
     except Exception as e:
@@ -923,4 +926,20 @@ async def api_get_campaign_categories():
         return campaign_finder.get_categories()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Categories fetch error: {str(e)}")
+
+
+@app.get("/api/campaigns/countries")
+async def api_get_campaign_countries():
+    """Get supported country filters for Cuelinks."""
+    try:
+        return campaign_finder.get_countries()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Countries fetch error: {str(e)}")
+
+
+@app.get("/api/campaigns/open")
+async def api_open_cuelinks_campaign(brand: Optional[str] = "", id: Optional[str] = ""):
+    """Redirect safely to verified Cuelinks campaign page or campaigns directory with ZERO 404s."""
+    target_url = campaign_finder.get_cuelinks_url(brand or "")
+    return RedirectResponse(url=target_url, status_code=302)
 
