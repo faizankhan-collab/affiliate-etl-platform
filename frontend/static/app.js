@@ -2456,6 +2456,7 @@ function renderNetworkPills(networks) {
     let icon = "🌐";
     if (net.id === "cuelinks") icon = "🔗";
     else if (net.id === "cashkaro") icon = "⚡";
+    else if (net.id === "cj") icon = "🌟";
     else if (net.id === "admitad") icon = "🛡️";
     else if (net.id === "inrdeals") icon = "₹";
 
@@ -2493,11 +2494,13 @@ function syncNetworkControls(netId) {
   const badge = document.getElementById("active-network-name-badge");
   if (badge) {
     if (netId === "all") {
-      badge.textContent = "All Networks (Cuelinks + CashKaro): Connected 🟢";
+      badge.textContent = "All Networks (Cuelinks + CashKaro + CJ): Connected 🟢";
     } else if (netId === "cashkaro") {
       badge.textContent = "CashKaro Trackier: Connected 🟢";
     } else if (netId === "cuelinks") {
       badge.textContent = "Cuelinks API v3: Connected 🟢";
+    } else if (netId === "cj") {
+      badge.textContent = "CJ Affiliate: Connected 🟢";
     } else {
       badge.textContent = `${netId.toUpperCase()}: Connected 🟢`;
     }
@@ -2647,9 +2650,10 @@ function renderCampaignResults(data) {
   const results = data.results || [];
 
   if (countLabel) {
-    let netDisplay = "All Networks (Cuelinks + CashKaro)";
+    let netDisplay = "All Networks (Cuelinks + CashKaro + CJ)";
     if (campaignState.network === "cuelinks") netDisplay = "Cuelinks";
     else if (campaignState.network === "cashkaro") netDisplay = "CashKaro";
+    else if (campaignState.network === "cj") netDisplay = "CJ Affiliate";
     countLabel.textContent = `Showing ${results.length} live campaigns across ${netDisplay}`;
   }
 
@@ -2694,9 +2698,10 @@ async function fetchAndRenderCampaigns() {
     return;
   }
 
-  let netSearchLabel = "All Networks (Cuelinks + CashKaro)";
+  let netSearchLabel = "All Networks (Cuelinks + CashKaro + CJ)";
   if (campaignState.network === "cuelinks") netSearchLabel = "Cuelinks API";
   else if (campaignState.network === "cashkaro") netSearchLabel = "CashKaro Trackier";
+  else if (campaignState.network === "cj") netSearchLabel = "CJ Affiliate Lookup API";
 
   cardsGrid.innerHTML = `
     <div class="col-span-full py-12 text-center text-slate-400">
@@ -2779,10 +2784,26 @@ function createCampaignCard(c) {
     ? `<img src="${escapeHtml(c.image_url)}" alt="${escapeHtml(c.brand_name)}" class="w-9 h-9 rounded-xl object-contain bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0" onerror="this.onerror=null; this.src=''; this.classList.add('hidden');" />`
     : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-sky-500/40">${brandInitial}</div>`;
 
-  const networkName = c.network_name || (nid === "cashkaro" ? "CashKaro" : "Cuelinks");
+  const networkName = c.network_name || (nid === "cashkaro" ? "CashKaro" : (nid === "cj" ? "CJ Affiliate" : "Cuelinks"));
   const panelUrl = c.panel_url || (nid === "cashkaro" 
     ? `/api/campaigns/open?network=cashkaro&id=${encodeURIComponent(c.id)}` 
-    : `/api/campaigns/open?network=cuelinks&brand=${encodeURIComponent(c.brand_name)}`);
+    : (nid === "cj"
+      ? `/api/campaigns/open?network=cj&id=${encodeURIComponent(c.id)}`
+      : `/api/campaigns/open?network=cuelinks&brand=${encodeURIComponent(c.brand_name)}`));
+
+  const payoutColorClass = isBest 
+    ? 'text-emerald-500 dark:text-emerald-400' 
+    : (nid === 'cashkaro' ? 'text-rose-500 dark:text-rose-400' : (nid === 'cj' ? 'text-amber-500 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400'));
+
+  const defaultDesc = nid === "cashkaro" 
+    ? "Live CashKaro Trackier offer." 
+    : (nid === "cj" ? "CJ Affiliate advertiser offer." : "Active Cuelinks v3 campaign offer.");
+
+  const epcPrefix = nid === 'cj' ? '$' : '₹';
+  const applyTitle = nid === 'cashkaro' 
+    ? 'Request Approval on CashKaro Trackier Portal' 
+    : (nid === 'cj' ? 'Join Program on CJ Affiliate Member Portal' : 'Apply on Cuelinks Dashboard');
+  const applyText = nid === 'cashkaro' ? 'Request Approval' : (nid === 'cj' ? 'Apply on CJ' : 'Apply on Dashboard');
 
   card.innerHTML = `
     <div>
@@ -2815,7 +2836,7 @@ function createCampaignCard(c) {
         <div class="flex items-center justify-between">
           <div>
             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Commission Payout</span>
-            <div class="text-base sm:text-lg font-black ${isBest ? 'text-emerald-500 dark:text-emerald-400' : (nid === 'cashkaro' ? 'text-rose-500 dark:text-rose-400' : 'text-sky-600 dark:text-sky-400')}">
+            <div class="text-base sm:text-lg font-black ${payoutColorClass}">
               ${escapeHtml(c.payout_display)}
             </div>
           </div>
@@ -2827,7 +2848,7 @@ function createCampaignCard(c) {
 
       <!-- Description snippet -->
       <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-        ${escapeHtml(c.description || (nid === "cashkaro" ? "Live CashKaro Trackier offer." : "Active Cuelinks v3 campaign offer."))}
+        ${escapeHtml(c.description || defaultDesc)}
       </p>
 
       <!-- Metadata chips -->
@@ -2840,10 +2861,10 @@ function createCampaignCard(c) {
           <i class="ph ph-globe text-xs text-slate-400"></i>
           <span>${c.geo || 'India'}</span>
         </span>
-        ${c.epc_7d && c.epc_7d !== '0.0' ? `
+        ${c.epc_7d && c.epc_7d !== '0.0' && c.epc_7d !== '0.00' ? `
         <span class="flex items-center space-x-1">
           <i class="ph ph-chart-line-up text-xs text-emerald-400"></i>
-          <span>EPC: ₹${c.epc_7d}</span>
+          <span>EPC: ${epcPrefix}${c.epc_7d}</span>
         </span>` : ''}
       </div>
     </div>
@@ -2875,9 +2896,9 @@ function createCampaignCard(c) {
         target="_blank" 
         rel="noopener noreferrer" 
         class="inline-flex items-center justify-center py-2 px-2 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20 text-center hover:bg-amber-500/20 transition cursor-pointer"
-        title="${nid === 'cashkaro' ? 'Request Approval on CashKaro Trackier Portal' : 'Apply on Cuelinks Dashboard'}"
+        title="${applyTitle}"
       >
-        <span>${nid === 'cashkaro' ? 'Request Approval' : 'Apply on Dashboard'}</span>
+        <span>${applyText}</span>
         <i class="ph-bold ph-arrow-square-out text-xs ml-1"></i>
       </a>`}
     </div>

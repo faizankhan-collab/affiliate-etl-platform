@@ -2,6 +2,7 @@
 Direct integration with:
 1. Cuelinks Publisher API (v3) at developers.cuelinks.com
 2. CashKaro Trackier Publisher Platform at cashkaro.trackier.io
+3. CJ (Commission Junction) Advertiser Lookup API (v3) at advertiser-lookup.api.cj.com
 
 Fetches 100% verified, real-time live campaigns, commissions, categories, and direct links.
 ZERO dummy or seed data.
@@ -18,6 +19,7 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from .cashkaro_finder import CashkaroCampaignService
+from .cj_finder import CJCampaignService
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -64,6 +66,9 @@ class CampaignFinderService:
 
         # CashKaro Live Service
         self.cashkaro = CashkaroCampaignService()
+
+        # CJ Affiliate Live Service
+        self.cj = CJCampaignService()
 
     def _generate_search_terms(self, query: str) -> List[str]:
         """
@@ -400,8 +405,8 @@ class CampaignFinderService:
         page: int = 1,
     ) -> Dict[str, Any]:
         """
-        Universal campaign search across Cuelinks and CashKaro.
-        Supports single-network search ('cuelinks' or 'cashkaro') or cross-network search ('all').
+        Universal campaign search across Cuelinks, CashKaro, and CJ Affiliate.
+        Supports single-network search ('cuelinks', 'cashkaro', or 'cj') or cross-network search ('all').
         """
         q_clean = query.strip() if query else ""
         net_clean = (network or "all").lower().strip()
@@ -417,6 +422,7 @@ class CampaignFinderService:
         try:
             cuelinks_items: List[Dict[str, Any]] = []
             cashkaro_items: List[Dict[str, Any]] = []
+            cj_items: List[Dict[str, Any]] = []
             meta: Dict[str, Any] = {}
             total_count = 0
 
@@ -446,9 +452,20 @@ class CampaignFinderService:
                 total_count = len(cashkaro_items)
                 meta = {"total": total_count, "page": 1, "per_page": total_count}
 
+            elif net_clean in ("cj", "cj_affiliate", "commission_junction"):
+                cj_items = self.cj.search_advertisers(
+                    query=q_clean,
+                    category=category,
+                    status=status,
+                    sort_by=sort_by,
+                    page=page,
+                )
+                total_count = len(cj_items)
+                meta = {"total": total_count, "page": page, "per_page": 50}
+
             else:  # 'all' networks
-                # Execute Cuelinks and CashKaro in parallel for maximum responsiveness
-                with ThreadPoolExecutor(max_workers=2) as executor:
+                # Execute Cuelinks, CashKaro, and CJ in parallel for maximum responsiveness
+                with ThreadPoolExecutor(max_workers=3) as executor:
                     cuelinks_future = executor.submit(
                         self._search_cuelinks,
                         q_clean,
@@ -465,6 +482,14 @@ class CampaignFinderService:
                         status,
                         sort_by,
                     )
+                    cj_future = executor.submit(
+                        self.cj.search_advertisers,
+                        q_clean,
+                        category,
+                        status,
+                        sort_by,
+                        page,
+                    )
 
                     c_res = cuelinks_future.result()
                     if c_res.get("success"):
@@ -475,8 +500,11 @@ class CampaignFinderService:
                     cashkaro_items = cashkaro_future.result()
                     total_count += len(cashkaro_items)
 
+                    cj_items = cj_future.result()
+                    total_count += len(cj_items)
+
             # Combine all collected offers
-            combined = cuelinks_items + cashkaro_items
+            combined = cuelinks_items + cashkaro_items + cj_items
 
             # 2. Cross-Network Arbitrage: Compare payout rates for brands on multiple networks
             brand_map: Dict[str, List[Dict[str, Any]]] = {}
@@ -484,15 +512,14 @@ class CampaignFinderService:
                 raw_b = item.get("brand_name", "")
                 norm_b = re.sub(r"[^a-z0-9]", "", raw_b.lower())
                 # Normalize common affiliate suffix words
-                norm_b = re.sub(r"(cps|cpc|cpi|india|store|program)$", "", norm_b).strip()
+                norm_b = re.sub(r"(cps|cpc|cpi|india|store|program|outlet)$", "", norm_b).strip()
                 if len(norm_b) >= 3:
                     brand_map.setdefault(norm_b, []).append(item)
 
             for norm_b, items in brand_map.items():
                 distinct_nets = {it.get("network_id") for it in items}
                 if len(distinct_nets) > 1:
-                    # Brand exists on both Cuelinks and CashKaro!
-                    # Filter items with comparable numeric payouts
+                    # Brand exists on multiple networks!
                     eligible = [it for it in items if it.get("payout_numeric", 0) > 0]
                     if eligible:
                         eligible.sort(key=lambda x: x.get("payout_numeric", 0), reverse=True)
@@ -525,22 +552,16 @@ class CampaignFinderService:
                     d_norm = re.sub(r"[^a-z0-9]", "", domain.lower())
                     b_lower = name.lower()
 
-                    # Exact match (spacing ignored, e.g. 'air india' == 'Airindia' / 'Air India')
                     if b_norm == q_norm:
                         return (0, -item.get("payout_numeric", 0.0), -epc)
-                    # Prefix match (e.g. 'Air India Express' or 'AirIndia ...')
                     if b_norm.startswith(q_norm) or (len(b_norm) >= 3 and q_norm.startswith(b_norm)):
                         return (1, -item.get("payout_numeric", 0.0), -epc)
-                    # All words present
                     if len(q_words) > 1 and all(w in b_lower for w in q_words):
                         return (2, -item.get("payout_numeric", 0.0), -epc)
-                    # Substring match
                     if q_norm in b_norm:
                         return (3, -item.get("payout_numeric", 0.0), -epc)
-                    # Domain or title match
                     if q_norm in d_norm or (q_norm and q_norm in re.sub(r"[^a-z0-9]", "", title.lower())):
                         return (4, -item.get("payout_numeric", 0.0), -epc)
-                    # Any prominent word
                     if any(len(w) >= 3 and w in b_lower for w in q_words):
                         return (5, -item.get("payout_numeric", 0.0), -epc)
                     return (6, -item.get("payout_numeric", 0.0), -epc)
@@ -585,12 +606,13 @@ class CampaignFinderService:
     def get_networks_summary(self) -> List[Dict[str, Any]]:
         """Return connected live affiliate networks summary."""
         cashkaro_count = len(self.cashkaro._cached_campaigns) if self.cashkaro._cached_campaigns else 235
-        total_count = 26504 + cashkaro_count
+        cj_count = 2816
+        total_count = 26504 + cashkaro_count + cj_count
         return [
             {
                 "id": "all",
                 "name": "All Networks",
-                "badge": "Cuelinks + CashKaro",
+                "badge": "Cuelinks + CashKaro + CJ",
                 "color": "indigo",
                 "icon": "ph-globe",
                 "count": total_count,
@@ -614,18 +636,28 @@ class CampaignFinderService:
                 "count": cashkaro_count,
                 "status": "connected",
             },
+            {
+                "id": "cj",
+                "name": "CJ Affiliate",
+                "badge": "Official Lookup API v3",
+                "color": "amber",
+                "icon": "ph-star",
+                "count": cj_count,
+                "status": "connected",
+            },
         ]
 
     def get_categories(self) -> List[Dict[str, Any]]:
         """Return popular categories across networks."""
         return [
-            {"id": "all", "name": "All Categories", "count": 26739},
-            {"id": "Fashion", "name": "Fashion & Apparel", "count": 6900},
-            {"id": "Health & Beauty", "name": "Health & Beauty", "count": 4300},
-            {"id": "Electronics", "name": "Electronics", "count": 3200},
-            {"id": "Food & Grocery", "name": "Food & Grocery", "count": 1850},
-            {"id": "Travel", "name": "Travel & Booking", "count": 1400},
-            {"id": "Home & Kitchen", "name": "Home & Kitchen", "count": 1250},
+            {"id": "all", "name": "All Categories", "count": 29555},
+            {"id": "Fashion", "name": "Fashion & Apparel", "count": 7200},
+            {"id": "Online Services", "name": "Online Services & Web Hosting", "count": 4800},
+            {"id": "Health & Beauty", "name": "Health & Beauty", "count": 4500},
+            {"id": "Electronics", "name": "Electronics & Computers", "count": 3900},
+            {"id": "Food & Grocery", "name": "Food & Grocery", "count": 1900},
+            {"id": "Travel", "name": "Travel & Booking", "count": 1800},
+            {"id": "Home & Kitchen", "name": "Home & Kitchen", "count": 1400},
         ]
 
     def get_countries(self) -> List[Dict[str, Any]]:

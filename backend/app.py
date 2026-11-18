@@ -952,7 +952,8 @@ async def api_open_cuelinks_campaign(
     id: Optional[str] = "",
 ):
     """Redirect safely to verified network campaign page or campaigns directory with ZERO 404s."""
-    if (network or "").lower() == "cashkaro":
+    net = (network or "").lower()
+    if net == "cashkaro":
         if id:
             return RedirectResponse(
                 url=f"https://cashkaro.trackier.io/publisher/campaign/{id}.html",
@@ -960,6 +961,17 @@ async def api_open_cuelinks_campaign(
             )
         return RedirectResponse(
             url="https://cashkaro.trackier.io/publisher/campaigns",
+            status_code=302,
+        )
+    elif net in ("cj", "cj_affiliate"):
+        cid = os.getenv("CJ_PUBLISHER_CID") or "7935480"
+        if id:
+            return RedirectResponse(
+                url=f"https://members.cj.com/member/publisher/{cid}/advertiserDetail.do?advertiserId={id}",
+                status_code=302,
+            )
+        return RedirectResponse(
+            url=f"https://members.cj.com/member/publisher/{cid}/advertiserSearch.do",
             status_code=302,
         )
     target_url = campaign_finder.get_cuelinks_url(brand or "")
