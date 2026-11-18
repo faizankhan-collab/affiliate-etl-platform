@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from .etl.engine import ETLEngine
 from .etl.normalizer import BrandNormalizer
 from .campaign_finder import CampaignFinderService
+from .buyhatke_clicks import BuyhatkeClicksService
 from .models import AliasAddRequest, AliasResponse, ETLProcessResponse
 
 app = FastAPI(
@@ -55,6 +56,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 normalizer = BrandNormalizer()
 engine = ETLEngine(normalizer=normalizer)
 campaign_finder = CampaignFinderService()
+buyhatke_clicks = BuyhatkeClicksService()
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -976,4 +978,88 @@ async def api_open_cuelinks_campaign(
         )
     target_url = campaign_finder.get_cuelinks_url(brand or "")
     return RedirectResponse(url=target_url, status_code=302)
+
+
+# =========================================================================
+# Buyhatke Live Internal Clicks API Endpoints
+# =========================================================================
+
+@app.get("/api/internal-clicks/stats")
+async def api_get_internal_clicks_stats(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    website: Optional[str] = None,
+    group_by: Optional[str] = "position,affiliate_network",
+):
+    """Fetch live internal click distributions and totals from Buyhatke tracking platform."""
+    from datetime import datetime, timedelta
+    end = end_date or datetime.now().strftime("%Y-%m-%d")
+    start = start_date or (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+    
+    try:
+        return buyhatke_clicks.fetch_raw_stats(
+            from_date=start,
+            upto_date=end,
+            website=website,
+            group_by=group_by or "position,affiliate_network",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Buyhatke stats error: {str(e)}")
+
+
+@app.get("/api/internal-clicks/timeseries")
+async def api_get_internal_clicks_timeseries(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    website: Optional[str] = None,
+):
+    """Fetch daily internal click trend for charts and anomaly detection."""
+    from datetime import datetime, timedelta
+    end = end_date or datetime.now().strftime("%Y-%m-%d")
+    start = start_date or (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+    
+    try:
+        data = buyhatke_clicks.get_daily_timeseries(
+            from_date=start,
+            upto_date=end,
+            website=website,
+        )
+        return {
+            "success": True,
+            "start_date": start,
+            "end_date": end,
+            "website": website or "all",
+            "timeseries": data,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Buyhatke timeseries error: {str(e)}")
+
+
+@app.get("/api/internal-clicks/top-brands")
+async def api_get_internal_clicks_top_brands(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: Optional[int] = 50,
+):
+    """Fetch high-traffic brands aggregated by internal clicks."""
+    from datetime import datetime, timedelta
+    end = end_date or datetime.now().strftime("%Y-%m-%d")
+    start = start_date or (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+    
+    try:
+        brands = buyhatke_clicks.get_top_brands_summary(
+            from_date=start,
+            upto_date=end,
+            limit=limit or 50,
+        )
+        return {
+            "success": True,
+            "start_date": start,
+            "end_date": end,
+            "count": len(brands),
+            "brands": brands,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Buyhatke top brands error: {str(e)}")
+
 
