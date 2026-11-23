@@ -1007,6 +1007,29 @@ async def api_get_internal_clicks_stats(
         raise HTTPException(status_code=500, detail=f"Buyhatke stats error: {str(e)}")
 
 
+@app.get("/api/internal-clicks/download-csv")
+async def api_download_internal_clicks_csv(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    website: Optional[str] = None,
+):
+    """Generate and return CSV export of live Buyhatke internal clicks for specified dates."""
+    from datetime import datetime, timedelta
+    end = end_date or datetime.now().strftime("%Y-%m-%d")
+    start = start_date or (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d")
+
+    try:
+        df = buyhatke_clicks.get_clicks_dataframe(from_date=start, upto_date=end, website=website)
+        csv_str = df.to_csv(index=False)
+        filename = f"buyhatke_live_clicks_{start}_to_{end}.csv"
+        headers = {
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+        return Response(content=csv_str, media_type="text/csv", headers=headers)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate clicks CSV: {str(e)}")
+
+
 @app.get("/api/internal-clicks/timeseries")
 async def api_get_internal_clicks_timeseries(
     start_date: Optional[str] = None,

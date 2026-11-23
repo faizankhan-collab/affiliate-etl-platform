@@ -311,6 +311,155 @@ function setupInternalClicksDropzone() {
     FileStore.setFile("internal_clicks", file);
     inspectClicksFileDates(file);
   }
+
+  setupLiveClicksControls();
+}
+
+function setupLiveClicksControls() {
+  const tabLive = document.getElementById("tab-clicks-live");
+  const tabUpload = document.getElementById("tab-clicks-upload");
+  const panelLive = document.getElementById("panel-clicks-live");
+  const panelUpload = document.getElementById("panel-clicks-upload");
+  const inputFrom = document.getElementById("input-live-clicks-from");
+  const inputUpto = document.getElementById("input-live-clicks-upto");
+  const btnFetch = document.getElementById("btn-fetch-live-clicks");
+  const statusBox = document.getElementById("live-clicks-status-box");
+  const totalLabel = document.getElementById("live-clicks-total-label");
+  const topPreview = document.getElementById("live-clicks-top-preview");
+  const btnClearLive = document.getElementById("btn-clear-live-clicks");
+  const presetBtns = document.querySelectorAll(".btn-live-preset");
+
+  // Tab switching
+  if (tabLive && tabUpload && panelLive && panelUpload) {
+    tabLive.addEventListener("click", () => {
+      tabLive.className = "flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer font-semibold";
+      tabUpload.className = "flex-1 py-1.5 px-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex items-center justify-center space-x-1.5 cursor-pointer font-semibold";
+      panelLive.classList.remove("hidden");
+      panelUpload.classList.add("hidden");
+    });
+
+    tabUpload.addEventListener("click", () => {
+      tabUpload.className = "flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer font-semibold";
+      tabLive.className = "flex-1 py-1.5 px-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex items-center justify-center space-x-1.5 cursor-pointer font-semibold";
+      panelUpload.classList.remove("hidden");
+      panelLive.classList.add("hidden");
+    });
+  }
+
+  // Presets
+  presetBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (inputFrom && btn.dataset.from) inputFrom.value = btn.dataset.from;
+      if (inputUpto && btn.dataset.upto) inputUpto.value = btn.dataset.upto;
+    });
+  });
+
+  // Fetch Live Clicks
+  if (btnFetch) {
+    btnFetch.addEventListener("click", async () => {
+      const fromDate = inputFrom ? inputFrom.value.trim() : "2026-11-11";
+      const uptoDate = inputUpto ? inputUpto.value.trim() : "2026-11-17";
+
+      if (!fromDate || !uptoDate) {
+        alert("Please specify both From Date and Upto Date.");
+        return;
+      }
+      if (fromDate > uptoDate) {
+        alert("From Date cannot be after Upto Date.");
+        return;
+      }
+
+      const origBtnHtml = btnFetch.innerHTML;
+      btnFetch.disabled = true;
+      btnFetch.innerHTML = `<i class="ph ph-spinner animate-spin"></i><span>Fetching Live Clicks...</span>`;
+
+      try {
+        // 1. Fetch live CSV for pipeline processing
+        const csvRes = await fetch(`/api/internal-clicks/download-csv?start_date=${encodeURIComponent(fromDate)}&end_date=${encodeURIComponent(uptoDate)}`);
+        if (!csvRes.ok) {
+          const errData = await csvRes.json().catch(() => ({}));
+          throw new Error(errData.detail || `HTTP ${csvRes.status}`);
+        }
+        const csvBlob = await csvRes.blob();
+        const filename = `buyhatke_live_clicks_${fromDate}_to_${uptoDate}.csv`;
+        const liveFile = new File([csvBlob], filename, { type: "text/csv" });
+
+        // Update internalClicksFile state seamlessly
+        internalClicksFile = liveFile;
+        FileStore.setFile("internal_clicks", liveFile);
+        try {
+          sessionStorage.setItem("affiliate_clicks_info", JSON.stringify({ name: filename, size: csvBlob.size }));
+        } catch (e) {}
+
+        // Inspect file dates for mismatch checking
+        inspectClicksFileDates(liveFile);
+
+        // Update upload panel preview as well for transparency
+        const clicksFn = document.getElementById("clicks-filename");
+        const clicksFs = document.getElementById("clicks-filesize");
+        const clicksPrompt = document.getElementById("clicks-prompt");
+        const clicksPreview = document.getElementById("clicks-preview");
+        if (clicksFn) clicksFn.textContent = filename;
+        if (clicksFs) clicksFs.textContent = formatBytes(csvBlob.size);
+        if (clicksPrompt) clicksPrompt.classList.add("hidden");
+        if (clicksPreview) clicksPreview.classList.remove("hidden");
+
+        // 2. Fetch stats for live UI chip feedback
+        const statsRes = await fetch(`/api/internal-clicks/stats?start_date=${encodeURIComponent(fromDate)}&end_date=${encodeURIComponent(uptoDate)}&page_size=1000`);
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          const totals = statsData.data?.totals || {};
+          const rows = statsData.data?.rows || [];
+          const totalClicks = totals.internal_clicks || 0;
+
+          if (totalLabel) {
+            totalLabel.textContent = `✅ ${totalClicks.toLocaleString()} internal clicks loaded (${fromDate} to ${uptoDate})`;
+          }
+
+          if (topPreview) {
+            // Group by brand to show top 5
+            const brandMap = new Map();
+            rows.forEach((r) => {
+              const b = r.website_name || "Direct";
+              const c = r.internal_clicks || 0;
+              brandMap.set(b, (brandMap.get(b) || 0) + c);
+            });
+            const sortedBrands = Array.from(brandMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            topPreview.innerHTML = sortedBrands
+              .map(([bName, bClicks]) => {
+                const clickFmt = bClicks >= 1000000 ? `${(bClicks / 1000000).toFixed(2)}M` : (bClicks >= 1000 ? `${(bClicks / 1000).toFixed(0)}k` : bClicks);
+                return `<span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-emerald-300 dark:border-emerald-800 font-semibold">${escapeHtml(bName)}: ${clickFmt}</span>`;
+              })
+              .join("");
+          }
+        }
+
+        if (statusBox) statusBox.classList.remove("hidden");
+
+      } catch (err) {
+        alert("Buyhatke Live Clicks API Error: " + err.message);
+      } finally {
+        btnFetch.disabled = false;
+        btnFetch.innerHTML = origBtnHtml;
+      }
+    });
+  }
+
+  // Clear live clicks
+  if (btnClearLive) {
+    btnClearLive.addEventListener("click", () => {
+      internalClicksFile = null;
+      if (statusBox) statusBox.classList.add("hidden");
+      sessionStorage.removeItem("affiliate_clicks_info");
+      FileStore.removeFile("internal_clicks");
+      inspectClicksFileDates(null);
+      const clicksPrompt = document.getElementById("clicks-prompt");
+      const clicksPreview = document.getElementById("clicks-preview");
+      if (clicksPrompt) clicksPrompt.classList.remove("hidden");
+      if (clicksPreview) clicksPreview.classList.add("hidden");
+    });
+  }
 }
 
 let internalClicksFileDates = null;

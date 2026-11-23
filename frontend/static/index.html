@@ -372,49 +372,118 @@
               <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">Base Data</span>
             </div>
             
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Upload Buyhatke internal click tracking sheet for the selected date range.
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              Fetch real-time traffic directly via Buyhatke API or upload a tracking export.
             </p>
 
-            <!-- Dropzone Clicks -->
-            <div id="dropzone-clicks" class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-50/50 dark:bg-slate-900/30">
-              <input type="file" id="input-clicks" class="hidden" accept=".csv,.xlsx,.xls">
-              <div id="clicks-prompt">
-                <i class="ph ph-file-arrow-up text-3xl text-slate-400 dark:text-slate-500 mb-2 inline-block"></i>
-                <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Drop clicks file here or click to browse</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">CSV or Excel (.xlsx / .xls)</p>
-              </div>
-              <div id="clicks-preview" class="hidden text-left flex items-center justify-between p-3 bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-                <div class="flex items-center space-x-2.5 truncate">
-                  <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <i class="ph-bold ph-file-csv text-lg"></i>
+            <!-- Mode Toggle: Live API vs Upload File -->
+            <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-4 text-xs font-semibold">
+              <button id="tab-clicks-live" type="button" class="flex-1 py-1.5 px-3 rounded-lg bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>⚡ Live Buyhatke API</span>
+              </button>
+              <button id="tab-clicks-upload" type="button" class="flex-1 py-1.5 px-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                <i class="ph-bold ph-upload-simple"></i>
+                <span>📁 Upload CSV / Excel</span>
+              </button>
+            </div>
+
+            <!-- Panel 1: Live Buyhatke API Panel -->
+            <div id="panel-clicks-live" class="space-y-3">
+              <!-- Custom Date Range Controls -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="ph-bold ph-calendar-blank text-blue-500"></i>
+                    <span>Custom Date Range</span>
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono">Buyhatke API v1</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">From Date</label>
+                    <input type="date" id="input-live-clicks-from" value="2026-11-11" class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" />
                   </div>
-                  <div class="truncate">
-                    <p id="clicks-filename" class="text-xs font-bold text-slate-800 dark:text-white truncate"></p>
-                    <div class="flex items-center gap-2 mt-0.5">
-                      <p id="clicks-filesize" class="text-[10px] text-slate-400 dark:text-slate-400"></p>
-                      <span id="clicks-file-dates" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 font-medium"></span>
-                    </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Upto Date</label>
+                    <input type="date" id="input-live-clicks-upto" value="2026-11-17" class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" />
                   </div>
                 </div>
-                <button id="btn-remove-clicks" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition" title="Remove file">
-                  <i class="ph-bold ph-trash text-sm"></i>
+
+                <!-- Quick Presets -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
+                  <span class="text-slate-400 font-medium">Quick:</span>
+                  <button type="button" class="btn-live-preset px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium transition cursor-pointer" data-from="2026-11-11" data-upto="2026-11-17">Past 7 Days (Nov 11–17)</button>
+                  <button type="button" class="btn-live-preset px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium transition cursor-pointer" data-from="2026-11-17" data-upto="2026-11-17">Yesterday</button>
+                  <button type="button" class="btn-live-preset px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium transition cursor-pointer" data-from="2026-10-01" data-upto="2026-10-31">Oct 2026</button>
+                </div>
+
+                <!-- Fetch Button -->
+                <button id="btn-fetch-live-clicks" type="button" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center justify-center space-x-2">
+                  <i class="ph-bold ph-lightning"></i>
+                  <span>Fetch Live Clicks (Buyhatke API)</span>
                 </button>
+              </div>
+
+              <!-- Live Clicks Active Status Container -->
+              <div id="live-clicks-status-box" class="hidden p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="live-clicks-total-label" class="font-bold text-emerald-800 dark:text-emerald-300"></span>
+                  </div>
+                  <button id="btn-clear-live-clicks" type="button" class="text-emerald-700 dark:text-emerald-400 hover:text-red-500 text-[11px] underline font-semibold cursor-pointer">
+                    Clear
+                  </button>
+                </div>
+                <div id="live-clicks-top-preview" class="flex flex-wrap gap-1 text-[10px]">
+                  <!-- Top merchant pills injected dynamically -->
+                </div>
               </div>
             </div>
 
-            <!-- Date Scope Mismatch Banner -->
-            <div id="clicks-date-mismatch-banner" class="hidden mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs">
-              <div class="flex items-start gap-2.5">
-                <i class="ph-bold ph-warning text-base text-amber-500 shrink-0 mt-0.5"></i>
-                <div class="flex-1">
-                  <p class="font-semibold text-amber-700 dark:text-amber-300">Date Scope Mismatch Detected</p>
-                  <p id="clicks-mismatch-desc" class="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5"></p>
-                  <div class="mt-2 flex items-center gap-2">
-                    <button type="button" id="btn-sync-sheet-dates" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-[11px] shadow-sm transition inline-flex items-center gap-1">
-                      <i class="ph-bold ph-calendar-check"></i>
-                      <span>Sync Date Scope to Sheet</span>
-                    </button>
+            <!-- Panel 2: Upload File Panel (Original Dropzone - 100% Intact & Reversible) -->
+            <div id="panel-clicks-upload" class="hidden">
+              <div id="dropzone-clicks" class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-50/50 dark:bg-slate-900/30">
+                <input type="file" id="input-clicks" class="hidden" accept=".csv,.xlsx,.xls">
+                <div id="clicks-prompt">
+                  <i class="ph ph-file-arrow-up text-3xl text-slate-400 dark:text-slate-500 mb-2 inline-block"></i>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Drop clicks file here or click to browse</p>
+                  <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">CSV or Excel (.xlsx / .xls)</p>
+                </div>
+                <div id="clicks-preview" class="hidden text-left flex items-center justify-between p-3 bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+                  <div class="flex items-center space-x-2.5 truncate">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <i class="ph-bold ph-file-csv text-lg"></i>
+                    </div>
+                    <div class="truncate">
+                      <p id="clicks-filename" class="text-xs font-bold text-slate-800 dark:text-white truncate"></p>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <p id="clicks-filesize" class="text-[10px] text-slate-400 dark:text-slate-400"></p>
+                        <span id="clicks-file-dates" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 font-medium"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <button id="btn-remove-clicks" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 transition" title="Remove file">
+                    <i class="ph-bold ph-trash text-sm"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Date Scope Mismatch Banner -->
+              <div id="clicks-date-mismatch-banner" class="hidden mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs">
+                <div class="flex items-start gap-2.5">
+                  <i class="ph-bold ph-warning text-base text-amber-500 shrink-0 mt-0.5"></i>
+                  <div class="flex-1">
+                    <p class="font-semibold text-amber-700 dark:text-amber-300">Date Scope Mismatch Detected</p>
+                    <p id="clicks-mismatch-desc" class="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5"></p>
+                    <div class="mt-2 flex items-center gap-2">
+                      <button type="button" id="btn-sync-sheet-dates" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-[11px] shadow-sm transition inline-flex items-center gap-1">
+                        <i class="ph-bold ph-calendar-check"></i>
+                        <span>Sync Date Scope to Sheet</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
