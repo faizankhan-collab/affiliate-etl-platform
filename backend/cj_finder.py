@@ -4,11 +4,13 @@ Fetches 100% verified, real-time live advertisers, commissions, categories, 7-da
 ZERO dummy or seed data.
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 import re
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
