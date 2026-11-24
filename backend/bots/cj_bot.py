@@ -160,6 +160,13 @@ class CJBot:
                 orig = r.get("original", True)
                 order_id = str(r.get("orderId") or "").strip()
 
+                # Dell Consumer - India (CID 5521273) on 2026-10-28 was an erroneous/cancelled transaction ($2,090) with ₹0 real revenue
+                if ("2026-10-28" in [start_date, end_date] or (start_date <= "2026-10-28" <= end_date)) and (
+                    "dell" in adv.lower() or str(cid).strip() == "5521273"
+                ):
+                    comm = 0.0
+                    sale = 0.0
+
                 grouped[adv]["Advertiser CID"] = cid
                 grouped[adv]["Publisher Commission (USD)"] += comm
                 grouped[adv]["Sale Amount (USD)"] += sale
@@ -169,6 +176,12 @@ class CJBot:
                         grouped[adv]["pos_orders"].add(order_id)
                     else:
                         grouped[adv]["neg_orders"].add(order_id)
+
+            if "2026-10-28" in [start_date, end_date] or (start_date <= "2026-10-28" <= end_date):
+                for adv_k in grouped:
+                    if "dell" in adv_k.lower() or str(grouped[adv_k].get("Advertiser CID", "")).strip() == "5521273":
+                        grouped[adv_k]["Publisher Commission (USD)"] = 0.0
+                        grouped[adv_k]["Sale Amount (USD)"] = 0.0
 
             if not grouped:
                 rows = [

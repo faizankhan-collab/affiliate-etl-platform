@@ -150,6 +150,62 @@ class TestBuyhatkeClicksService(unittest.TestCase):
             self.assertTrue(tb["success"])
             self.assertEqual(tb["count"], 1)
 
+    def test_rolling_30d_rpc_timeseries(self):
+        res = self.service.get_rolling_30d_rpc_timeseries(lag_days=6)
+        self.assertTrue(res["success"])
+        self.assertEqual(res["days_count"], 30)
+        self.assertEqual(len(res["timeline"]), 30)
+        self.assertIn("summary", res)
+        self.assertIn("avg_rpc", res["summary"])
+        self.assertIn("peak_day", res["summary"])
+        self.assertIn("lowest_day", res["summary"])
+        self.assertGreater(res["summary"]["peak_day"]["rpc"], 0)
+        self.assertGreater(res["summary"]["lowest_day"]["rpc"], 0)
+        self.assertIn("alerts", res)
+        self.assertIn("top_merchants_today", res)
+
+    def test_api_live_rpc_timeseries_endpoint(self):
+        import asyncio
+        from backend.app import api_get_live_rpc_timeseries
+        res = asyncio.run(api_get_live_rpc_timeseries(lag_days=6))
+        self.assertTrue(res["success"])
+        self.assertEqual(res["days_count"], 30)
+        self.assertIn("window_label", res)
+
+    def test_harvest_live_day(self):
+        day_res = self.service.harvest_live_day("2026-11-18")
+        self.assertIn("clicks", day_res)
+        self.assertIn("revenue", day_res)
+        self.assertIn("rpc", day_res)
+        self.assertGreater(day_res["clicks"], 0)
+        self.assertGreater(day_res["rpc"], 0.0)
+
+    def test_live_dashboard_decoupled_from_saved_reports(self):
+        import shutil
+        from pathlib import Path
+        
+        # Snapshot current live timeseries
+        baseline = self.service.get_rolling_30d_rpc_timeseries(lag_days=6)
+        
+        # Create a dummy report in saved_reports with extreme values
+        dummy_dir = Path(__file__).parent.parent / "backend" / "saved_reports"
+        dummy_file = dummy_dir / "report_20261117_20261117_dummy.json"
+        try:
+            dummy_dir.mkdir(parents=True, exist_ok=True)
+            with open(dummy_file, "w", encoding="utf-8") as f:
+                f.write('{"summary": {"total_revenue": 999999999, "total_internal_clicks": 1}}')
+            
+            # Re-fetch live timeseries
+            after_dummy = self.service.get_rolling_30d_rpc_timeseries(lag_days=6)
+            
+            # The Live Dashboard MUST BE completely immune to any files in saved_reports
+            self.assertEqual(baseline["summary"]["total_revenue"], after_dummy["summary"]["total_revenue"])
+            self.assertEqual(baseline["summary"]["avg_rpc"], after_dummy["summary"]["avg_rpc"])
+            self.assertEqual(baseline["timeline"][-1]["revenue"], after_dummy["timeline"][-1]["revenue"])
+        finally:
+            if dummy_file.exists():
+                dummy_file.unlink()
+
 
 if __name__ == "__main__":
     unittest.main()

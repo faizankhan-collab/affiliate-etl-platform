@@ -253,6 +253,84 @@ function setupThemeToggle() {
   updateThemeUI();
 }
 
+function getSelectedDateRange() {
+  const dateRangePreset = document.getElementById("date-range-preset");
+  const inputDateStart = document.getElementById("input-date-start");
+  const inputDateEnd = document.getElementById("input-date-end");
+
+  const preset = dateRangePreset ? dateRangePreset.value : "2026-10";
+  let start_date = "2026-10-01";
+  let end_date = "2026-10-31";
+  let label = "October 2026";
+  let isCustom = false;
+
+  if (preset === "custom") {
+    isCustom = true;
+    start_date = inputDateStart && inputDateStart.value ? inputDateStart.value : "2026-10-01";
+    end_date = inputDateEnd && inputDateEnd.value ? inputDateEnd.value : "2026-10-31";
+    label = `${start_date} to ${end_date}`;
+  } else if (preset && preset.includes("-")) {
+    const parts = preset.split("-");
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const lastDay = new Date(year, month, 0).getDate();
+    start_date = `${parts[0]}-${String(month).padStart(2, "0")}-01`;
+    end_date = `${parts[0]}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    label = `${monthNames[month - 1]} ${year}`;
+  }
+
+  const d1 = new Date(start_date);
+  const d2 = new Date(end_date);
+  const diffTime = Math.max(0, d2 - d1);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+  return { start_date, end_date, label, days: diffDays, isCustom };
+}
+
+function updateDateRangeUI() {
+  const range = getSelectedDateRange();
+  const activeRangePill = document.getElementById("active-range-pill");
+  const dateRangePreset = document.getElementById("date-range-preset");
+  const inputDateStart = document.getElementById("input-date-start");
+  const inputDateEnd = document.getElementById("input-date-end");
+
+  if (activeRangePill) {
+    if (range.isCustom) {
+      activeRangePill.textContent = `${range.days} Days Active (${range.start_date} to ${range.end_date})`;
+    } else {
+      activeRangePill.textContent = `${range.days} Days Active`;
+    }
+    activeRangePill.title = `Active Window: ${range.start_date} to ${range.end_date} (Synchronized for Clicks & Revenue)`;
+  }
+
+  const badgeDates = document.getElementById("badge-table-dates");
+  if (badgeDates) {
+    badgeDates.textContent = `📅 ${range.start_date} to ${range.end_date} (${range.days}d)`;
+  }
+
+  const liveScopeBadge = document.getElementById("live-clicks-active-scope-badge");
+  if (liveScopeBadge) {
+    if (range.isCustom) {
+      liveScopeBadge.textContent = `📅 ${range.start_date} to ${range.end_date} (${range.days} Days)`;
+    } else {
+      liveScopeBadge.textContent = `📅 ${range.label} (${range.start_date} to ${range.end_date})`;
+    }
+  }
+
+  if (inputDateStart && range.start_date && !range.isCustom) {
+    inputDateStart.value = range.start_date;
+  }
+  if (inputDateEnd && range.end_date && !range.isCustom) {
+    inputDateEnd.value = range.end_date;
+  }
+  checkDateRangeOverlap();
+}
+
 // 1. Internal Clicks Upload Handling
 function setupInternalClicksDropzone() {
   const dropzone = document.getElementById("dropzone-clicks");
@@ -320,14 +398,11 @@ function setupLiveClicksControls() {
   const tabUpload = document.getElementById("tab-clicks-upload");
   const panelLive = document.getElementById("panel-clicks-live");
   const panelUpload = document.getElementById("panel-clicks-upload");
-  const inputFrom = document.getElementById("input-live-clicks-from");
-  const inputUpto = document.getElementById("input-live-clicks-upto");
   const btnFetch = document.getElementById("btn-fetch-live-clicks");
   const statusBox = document.getElementById("live-clicks-status-box");
   const totalLabel = document.getElementById("live-clicks-total-label");
   const topPreview = document.getElementById("live-clicks-top-preview");
   const btnClearLive = document.getElementById("btn-clear-live-clicks");
-  const presetBtns = document.querySelectorAll(".btn-live-preset");
 
   // Tab switching
   if (tabLive && tabUpload && panelLive && panelUpload) {
@@ -346,32 +421,17 @@ function setupLiveClicksControls() {
     });
   }
 
-  // Presets
-  presetBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (inputFrom && btn.dataset.from) inputFrom.value = btn.dataset.from;
-      if (inputUpto && btn.dataset.upto) inputUpto.value = btn.dataset.upto;
-    });
-  });
-
-  // Fetch Live Clicks
+  // Fetch Live Clicks (Uses single Master Date Scope)
   if (btnFetch) {
     btnFetch.addEventListener("click", async () => {
-      const fromDate = inputFrom ? inputFrom.value.trim() : "2026-11-11";
-      const uptoDate = inputUpto ? inputUpto.value.trim() : "2026-11-17";
-
-      if (!fromDate || !uptoDate) {
-        alert("Please specify both From Date and Upto Date.");
-        return;
-      }
-      if (fromDate > uptoDate) {
-        alert("From Date cannot be after Upto Date.");
-        return;
-      }
+      const range = getSelectedDateRange();
+      const fromDate = range.start_date;
+      const uptoDate = range.end_date;
+      const scopeDesc = range.isCustom ? `${fromDate} to ${uptoDate}` : range.label;
 
       const origBtnHtml = btnFetch.innerHTML;
       btnFetch.disabled = true;
-      btnFetch.innerHTML = `<i class="ph ph-spinner animate-spin"></i><span>Fetching Live Clicks...</span>`;
+      btnFetch.innerHTML = `<i class="ph ph-spinner animate-spin"></i><span>Fetching Live Clicks (${escapeHtml(fromDate)} to ${escapeHtml(uptoDate)})...</span>`;
 
       try {
         // 1. Fetch live CSV for pipeline processing
@@ -413,7 +473,8 @@ function setupLiveClicksControls() {
           const totalClicks = totals.internal_clicks || 0;
 
           if (totalLabel) {
-            totalLabel.textContent = `✅ ${totalClicks.toLocaleString()} internal clicks loaded (${fromDate} to ${uptoDate})`;
+            const scopeLabel = range.isCustom ? `${fromDate} to ${uptoDate} (${range.days} Days)` : `${range.label} (${fromDate} to ${uptoDate})`;
+            totalLabel.textContent = `✅ ${totalClicks.toLocaleString()} internal clicks loaded for ${scopeLabel}`;
           }
 
           if (topPreview) {
@@ -758,62 +819,6 @@ function setupActionButtons() {
   const inputDateEnd = document.getElementById("input-date-end");
   const activeRangePill = document.getElementById("active-range-pill");
 
-  function getSelectedDateRange() {
-    const preset = dateRangePreset ? dateRangePreset.value : "2026-10";
-    let start_date = "2026-10-01";
-    let end_date = "2026-10-31";
-    let label = "October 2026";
-
-    if (preset === "custom") {
-      start_date = inputDateStart && inputDateStart.value ? inputDateStart.value : "2026-10-01";
-      end_date = inputDateEnd && inputDateEnd.value ? inputDateEnd.value : "2026-10-31";
-      label = `Custom (${start_date} to ${end_date})`;
-    } else if (preset && preset.includes("-")) {
-      const parts = preset.split("-");
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const lastDay = new Date(year, month, 0).getDate();
-      start_date = `${parts[0]}-${String(month).padStart(2, "0")}-01`;
-      end_date = `${parts[0]}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-      ];
-      label = `${monthNames[month - 1]} ${year}`;
-    }
-
-    const d1 = new Date(start_date);
-    const d2 = new Date(end_date);
-    const diffTime = Math.max(0, d2 - d1);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    return { start_date, end_date, label, days: diffDays };
-  }
-
-  function updateDateRangeUI() {
-    const range = getSelectedDateRange();
-    if (activeRangePill) {
-      if (dateRangePreset && dateRangePreset.value === "custom") {
-        activeRangePill.textContent = `${range.days} Days Active (${range.start_date} to ${range.end_date})`;
-      } else {
-        activeRangePill.textContent = `${range.days} Days Active`;
-      }
-      activeRangePill.title = `Active Window: ${range.start_date} to ${range.end_date} (Synchronized for Clicks & Revenue)`;
-    }
-    const badgeDates = document.getElementById("badge-table-dates");
-    if (badgeDates) {
-      badgeDates.textContent = `📅 ${range.start_date} to ${range.end_date} (${range.days}d)`;
-    }
-    if (inputDateStart && range.start_date && dateRangePreset && dateRangePreset.value !== "custom") {
-      inputDateStart.value = range.start_date;
-    }
-    if (inputDateEnd && range.end_date && dateRangePreset && dateRangePreset.value !== "custom") {
-      inputDateEnd.value = range.end_date;
-    }
-    checkDateRangeOverlap();
-  }
-
   if (dateRangePreset) {
     dateRangePreset.addEventListener("change", (e) => {
       if (e.target.value === "custom") {
@@ -825,8 +830,14 @@ function setupActionButtons() {
     });
   }
 
-  if (inputDateStart) inputDateStart.addEventListener("change", updateDateRangeUI);
-  if (inputDateEnd) inputDateEnd.addEventListener("change", updateDateRangeUI);
+  if (inputDateStart) {
+    inputDateStart.addEventListener("input", updateDateRangeUI);
+    inputDateStart.addEventListener("change", updateDateRangeUI);
+  }
+  if (inputDateEnd) {
+    inputDateEnd.addEventListener("input", updateDateRangeUI);
+    inputDateEnd.addEventListener("change", updateDateRangeUI);
+  }
 
   // Initialize UI state
   updateDateRangeUI();
@@ -1406,7 +1417,7 @@ async function loadSavedReports() {
                       ${displayTitle}
                     </h4>
                     <span class="inline-flex items-center text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                      ${rep.days_count || 0} Days Active • Saved ${createdDate}
+                      ${rep.days_count || 0} ${Number(rep.days_count) === 1 ? "Day" : "Days"} Active • Saved ${createdDate}
                     </span>
                   </div>
                 </div>
@@ -1546,20 +1557,42 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
   const viewReport = document.getElementById("view-report");
   const viewAnalytics = document.getElementById("view-analytics");
   const viewCampaigns = document.getElementById("view-campaigns");
+  const viewLive = document.getElementById("view-live");
   const headerMaster = document.getElementById("header-master-nav");
   const headerAnalytics = document.getElementById("header-analytics-nav");
   const headerCampaigns = document.getElementById("header-campaigns-nav");
+  const headerLive = document.getElementById("header-live-nav");
 
   // Keep route class in sync on <html> for CSS isolation
-  document.documentElement.classList.remove("route-campaigns", "route-analytics", "route-report", "route-master");
+  document.documentElement.classList.remove("route-campaigns", "route-analytics", "route-report", "route-master", "route-live");
   document.documentElement.classList.add(`route-${viewName}`);
 
-  if (viewName === "campaigns") {
+  if (viewName === "live") {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
     if (viewAnalytics) viewAnalytics.classList.add("hidden");
+    if (viewCampaigns) viewCampaigns.classList.add("hidden");
     if (headerMaster) headerMaster.classList.add("hidden");
     if (headerAnalytics) headerAnalytics.classList.add("hidden");
+    if (headerCampaigns) headerCampaigns.classList.add("hidden");
+
+    if (viewLive) viewLive.classList.remove("hidden");
+    if (headerLive) headerLive.classList.remove("hidden");
+
+    if (pushHistory) {
+      history.pushState({ view: "live" }, "", "/live");
+    }
+
+    initLiveDashboard();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (viewName === "campaigns") {
+    if (viewMaster) viewMaster.classList.add("hidden");
+    if (viewReport) viewReport.classList.add("hidden");
+    if (viewAnalytics) viewAnalytics.classList.add("hidden");
+    if (viewLive) viewLive.classList.add("hidden");
+    if (headerMaster) headerMaster.classList.add("hidden");
+    if (headerAnalytics) headerAnalytics.classList.add("hidden");
+    if (headerLive) headerLive.classList.add("hidden");
 
     if (viewCampaigns) viewCampaigns.classList.remove("hidden");
     if (headerCampaigns) headerCampaigns.classList.remove("hidden");
@@ -1576,8 +1609,10 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
     if (viewCampaigns) viewCampaigns.classList.add("hidden");
+    if (viewLive) viewLive.classList.add("hidden");
     if (headerMaster) headerMaster.classList.add("hidden");
     if (headerCampaigns) headerCampaigns.classList.add("hidden");
+    if (headerLive) headerLive.classList.add("hidden");
 
     if (viewAnalytics) viewAnalytics.classList.remove("hidden");
     if (headerAnalytics) headerAnalytics.classList.remove("hidden");
@@ -1594,8 +1629,10 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
     if (viewMaster) viewMaster.classList.add("hidden");
     if (viewAnalytics) viewAnalytics.classList.add("hidden");
     if (viewCampaigns) viewCampaigns.classList.add("hidden");
+    if (viewLive) viewLive.classList.add("hidden");
     if (headerAnalytics) headerAnalytics.classList.add("hidden");
     if (headerCampaigns) headerCampaigns.classList.add("hidden");
+    if (headerLive) headerLive.classList.add("hidden");
 
     if (viewReport) viewReport.classList.remove("hidden");
     if (headerMaster) headerMaster.classList.remove("hidden");
@@ -1611,6 +1648,8 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
     if (headerAnalytics) headerAnalytics.classList.add("hidden");
     if (viewCampaigns) viewCampaigns.classList.add("hidden");
     if (headerCampaigns) headerCampaigns.classList.add("hidden");
+    if (viewLive) viewLive.classList.add("hidden");
+    if (headerLive) headerLive.classList.add("hidden");
     if (viewReport) viewReport.classList.add("hidden");
 
     if (viewMaster) viewMaster.classList.remove("hidden");
@@ -1625,12 +1664,367 @@ function switchToView(viewName, pushHistory = true, reportId = null) {
   }
 }
 
+let liveRpcChartInstance = null;
+
+async function initLiveDashboard(forceRefresh = false) {
+  const chartCanvas = document.getElementById("chart-live-rpc");
+  const alertsContainer = document.getElementById("live-alerts-container");
+  const merchantsTableBody = document.getElementById("live-merchants-table-body");
+  const syncIndicator = document.getElementById("live-sync-indicator");
+  const btnRefreshLive = document.getElementById("btn-refresh-live");
+  const btnRefreshLiveStream = document.getElementById("btn-refresh-live-stream");
+
+  if (forceRefresh) {
+    if (btnRefreshLiveStream) {
+      btnRefreshLiveStream.disabled = true;
+      btnRefreshLiveStream.classList.add("opacity-75");
+      btnRefreshLiveStream.innerHTML = '<i class="ph-bold ph-arrows-clockwise text-xs animate-spin text-amber-500"></i><span>Ingesting 7 Networks...</span>';
+    }
+    if (btnRefreshLive) {
+      btnRefreshLive.disabled = true;
+      btnRefreshLive.classList.add("opacity-75");
+      btnRefreshLive.innerHTML = '<i class="ph-bold ph-arrows-clockwise text-sm text-red-500 animate-spin"></i><span>Ingesting...</span>';
+    }
+    if (syncIndicator) {
+      syncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span><span>⚡ Ingesting Live Networks & Buyhatke Clicks...</span>';
+    }
+  } else {
+    if (syncIndicator) {
+      syncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span><span>Syncing Live Telemetry...</span>';
+    }
+  }
+
+  try {
+    let data;
+    if (forceRefresh) {
+      // ⚡ Powerful autonomous live ingest: triggers all 7 affiliate network bots and Buyhatke clicks concurrently
+      const res = await fetch("/api/live/ingest-autonomous?lag_days=6", { method: "POST" });
+      if (!res.ok) throw new Error("Autonomous Live Ingest returned status " + res.status);
+      data = await res.json();
+    } else {
+      const res = await fetch("/api/live/rpc-timeseries?lag_days=6");
+      if (!res.ok) throw new Error("Failed to load live RPC timeseries");
+      data = await res.json();
+    }
+    if (!data.success) throw new Error(data.error || "Unknown server error");
+
+    const summary = data.summary || {};
+    const timeline = data.timeline || [];
+    const alerts = data.alerts || [];
+    const merchants = data.top_merchants_today || [];
+
+    // 0. Update Trailing Live Window Badge & Legend
+    const elWindowText = document.getElementById("live-chart-window-text");
+    if (elWindowText && data.window_label) {
+      elWindowText.textContent = `📅 ${data.window_label} (Rolling 30D Live)`;
+    }
+
+    const elPeakLegend = document.getElementById("live-chart-peak-legend");
+    if (elPeakLegend && summary.peak_day) {
+      elPeakLegend.innerHTML = `<strong>Peak:</strong> ${summary.peak_day.short_date} • ${summary.peak_day.note} (₹${summary.peak_day.rpc.toFixed(4)})`;
+    }
+
+    // 1. Update KPI Hero Cards
+    const elAvgRpc = document.getElementById("live-kpi-avg-rpc");
+    const elRpcRange = document.getElementById("live-kpi-rpc-range");
+    const elPeakRpc = document.getElementById("live-kpi-peak-rpc");
+    const elPeakDesc = document.getElementById("live-kpi-peak-desc");
+    const elLowestRpc = document.getElementById("live-kpi-lowest-rpc");
+    const elLowestDesc = document.getElementById("live-kpi-lowest-desc");
+    const elTotalVol = document.getElementById("live-kpi-total-volume");
+    const elTotalRev = document.getElementById("live-kpi-total-rev");
+
+    if (elAvgRpc) elAvgRpc.textContent = `₹${(summary.avg_rpc || 0).toFixed(4)}`;
+    if (elRpcRange && summary.lowest_day && summary.peak_day) {
+      elRpcRange.innerHTML = `Daily Range: <span class="font-mono font-semibold text-slate-700 dark:text-slate-200">₹${summary.lowest_day.rpc.toFixed(4)} – ₹${summary.peak_day.rpc.toFixed(4)}</span>`;
+    }
+    if (elPeakRpc && summary.peak_day) elPeakRpc.textContent = `₹${summary.peak_day.rpc.toFixed(4)}`;
+    if (elPeakDesc && summary.peak_day) {
+      elPeakDesc.innerHTML = `<strong class="font-semibold text-emerald-700 dark:text-emerald-300">${summary.peak_day.short_date}</strong> • ${summary.peak_day.note} (₹${(summary.peak_day.revenue / 1000).toFixed(1)}k Rev)`;
+    }
+    if (elLowestRpc && summary.lowest_day) elLowestRpc.textContent = `₹${summary.lowest_day.rpc.toFixed(4)}`;
+    if (elLowestDesc && summary.lowest_day) {
+      elLowestDesc.innerHTML = `<strong class="font-semibold text-amber-700 dark:text-amber-300">${summary.lowest_day.short_date}</strong> • ${summary.lowest_day.note} (₹${(summary.lowest_day.revenue / 1000).toFixed(1)}k Rev)`;
+    }
+    if (elTotalVol) elTotalVol.textContent = `${((summary.total_clicks || 0) / 1000000).toFixed(2)}M`;
+    if (elTotalRev) elTotalRev.innerHTML = `Net Revenue: <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹${Math.round(summary.total_revenue || 0).toLocaleString()}</span>`;
+
+    // 2. Render Beautiful Daywise RPC Chart (Spline Curve with Ups & Downs)
+    if (chartCanvas && typeof Chart !== "undefined") {
+      if (liveRpcChartInstance) {
+        liveRpcChartInstance.destroy();
+      }
+
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      const gridColor = isDarkMode ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.05)";
+      const textColor = isDarkMode ? "#94a3b8" : "#64748b";
+
+      const ctx = chartCanvas.getContext("2d");
+      const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+      gradient.addColorStop(0, "rgba(99, 102, 241, 0.40)");
+      gradient.addColorStop(0.5, "rgba(16, 185, 129, 0.18)");
+      gradient.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+
+      const labels = timeline.map((p) => p.short_date);
+      const rpcData = timeline.map((p) => p.net_rpc);
+
+      const peakDate = summary.peak_day?.date;
+      const lowestDate = summary.lowest_day?.date;
+
+      const pointBgColors = timeline.map((pt) => {
+        if (peakDate && pt.date === peakDate) return "#10b981"; // Emerald for peak
+        if (lowestDate && pt.date === lowestDate) return "#f59e0b"; // Amber for lowest
+        return "#6366f1"; // Indigo default
+      });
+
+      const pointRadii = timeline.map((pt) => {
+        if ((peakDate && pt.date === peakDate) || (lowestDate && pt.date === lowestDate)) return 6;
+        return 3;
+      });
+
+      liveRpcChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Net RPC (₹ per Click)",
+              data: rpcData,
+              borderColor: "#6366f1",
+              borderWidth: 2.5,
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.38,
+              pointBackgroundColor: pointBgColors,
+              pointBorderColor: isDarkMode ? "#0d1424" : "#ffffff",
+              pointBorderWidth: 2,
+              pointRadius: pointRadii,
+              pointHoverRadius: 8,
+              pointHoverBackgroundColor: "#6366f1",
+              pointHoverBorderColor: "#ffffff",
+              pointHoverBorderWidth: 2.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              backgroundColor: isDarkMode ? "#0d1424" : "#ffffff",
+              titleColor: isDarkMode ? "#f8fafc" : "#0f172a",
+              bodyColor: isDarkMode ? "#cbd5e1" : "#334155",
+              borderColor: isDarkMode ? "#334155" : "#e2e8f0",
+              borderWidth: 1,
+              padding: 12,
+              boxPadding: 4,
+              usePointStyle: true,
+              callbacks: {
+                title: function (context) {
+                  const idx = context[0].dataIndex;
+                  const pt = timeline[idx];
+                  return `${pt.weekday}, ${pt.date}`;
+                },
+                label: function (context) {
+                  const idx = context.dataIndex;
+                  const pt = timeline[idx];
+                  const chgSign = pt.change_pct >= 0 ? "+" : "";
+                  return [
+                    ` ⚡ Net RPC: ₹${pt.net_rpc.toFixed(4)} (${chgSign}${pt.change_pct}% vs prev)`,
+                    ` 💰 Revenue: ₹${Math.round(pt.revenue).toLocaleString()}`,
+                    ` 👆 Clicks: ${pt.clicks.toLocaleString()}`,
+                  ];
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: {
+                color: gridColor,
+                drawBorder: false,
+              },
+              ticks: {
+                color: textColor,
+                font: { size: 10, weight: 500 },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 12,
+              },
+            },
+            y: {
+              grid: {
+                color: gridColor,
+                drawBorder: false,
+              },
+              ticks: {
+                color: textColor,
+                font: { size: 10, weight: 600 },
+                callback: function (value) {
+                  return "₹" + Number(value).toFixed(3);
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // 3. Render Real-Time Anomaly & Downfall Alerts
+    if (alertsContainer) {
+      alertsContainer.innerHTML = alerts
+        .map((a) => {
+          const isCritical = a.severity === "critical";
+          const isWarning = a.severity === "warning";
+          const borderCls = isCritical
+            ? "border-red-300 dark:border-red-800/80 bg-red-50/40 dark:bg-red-950/20"
+            : isWarning
+            ? "border-amber-300 dark:border-amber-800/80 bg-amber-50/40 dark:bg-amber-950/20"
+            : "border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/40 dark:bg-emerald-950/20";
+          const badgeCls = isCritical
+            ? "bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300"
+            : isWarning
+            ? "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300"
+            : "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300";
+          const icon = isCritical
+            ? "ph-warning-octagon text-red-600 dark:text-red-400"
+            : isWarning
+            ? "ph-warning text-amber-600 dark:text-amber-400"
+            : "ph-trend-up text-emerald-600 dark:text-emerald-400";
+
+          return `
+            <div class="p-4 rounded-2xl border ${borderCls} flex flex-col justify-between space-y-3 transition hover:shadow-sm">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${badgeCls}">
+                    <i class="ph-bold ${icon}"></i>
+                    <span>${escapeHtml(a.severity)}</span>
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-medium">${escapeHtml(a.timestamp)}</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                  ${escapeHtml(a.title)}
+                </h4>
+                <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  ${escapeHtml(a.desc)}
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-200/50 dark:border-slate-800/60 flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-700 dark:text-slate-300 font-mono">${escapeHtml(a.impact)}</span>
+                <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
+                  ${escapeHtml(a.brand)} (${escapeHtml(a.network)})
+                </span>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    // 4. Render Today's Live Merchant Table (Collective Brand Matrix)
+    const elMerchantBadge = document.getElementById("live-merchant-date-badge");
+    if (elMerchantBadge && timeline.length > 0) {
+      const lastPoint = timeline[timeline.length - 1];
+      elMerchantBadge.textContent = `📅 Latest Audited Day • ${lastPoint.short_date}, 2026`;
+    }
+
+    if (merchantsTableBody) {
+      merchantsTableBody.innerHTML = merchants
+        .map((m) => {
+          const isCrit = m.health === "critical";
+          const isWarn = m.health === "warning";
+          const hasArbitrage = m.splits && m.splits.length > 1 && m.splits.some((s) => s.rpc >= 0.2) && m.splits.some((s) => s.rpc > 0 && s.rpc < 0.1);
+
+          const statusBadge = isCrit
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300 flex items-center justify-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>Zero Attribution</span>'
+            : isWarn
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center gap-1">Downfall</span>'
+            : hasArbitrage
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center gap-1">🚀 Arbitrage</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-1">🟢 Normal</span>';
+
+          const chgCls = m.change && m.change.startsWith("+")
+            ? "text-emerald-600 dark:text-emerald-400 font-bold"
+            : m.change && m.change.startsWith("-")
+            ? "text-red-600 dark:text-red-400 font-bold"
+            : "text-slate-500 font-medium";
+
+          const initial = (m.brand || "M").charAt(0).toUpperCase();
+
+          const splitsHtml = (m.splits && m.splits.length > 0)
+            ? m.splits.map((s) => `
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60" title="${escapeHtml(s.network)}: ${s.clicks.toLocaleString()} clicks (₹${s.revenue.toLocaleString()})">
+                  <span class="font-semibold">${escapeHtml(s.network)}</span>
+                  <span class="text-indigo-600 dark:text-indigo-400 font-bold">${s.share_pct}%</span>
+                </span>
+              `).join(" ")
+            : `<span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(m.network)}</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4 font-sans font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
+                <span class="w-6 h-6 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px]">
+                  ${initial}
+                </span>
+                <span>${escapeHtml(m.brand)}</span>
+              </td>
+              <td class="py-3 px-4 font-sans">
+                <div class="flex flex-wrap items-center gap-1">
+                  ${splitsHtml}
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200">${m.clicks.toLocaleString()}</td>
+              <td class="py-3 px-4 text-right font-bold ${m.revenue > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">₹${m.revenue.toLocaleString()}</td>
+              <td class="py-3 px-4 text-right font-black ${isCrit ? 'text-red-600 dark:text-red-400' : (m.rpc > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400')}">₹${m.rpc.toFixed(4)}</td>
+              <td class="py-3 px-4 text-right text-slate-500 dark:text-slate-400">₹${m.baseline_rpc.toFixed(4)}</td>
+              <td class="py-3 px-4 text-right ${chgCls}">${escapeHtml(m.change || '0%')}</td>
+              <td class="py-3 px-4 text-center font-sans">${statusBadge}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    if (syncIndicator) {
+      syncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Live Stream 100% Synced</span>';
+    }
+
+  } catch (err) {
+    console.error("Live dashboard init error:", err);
+    if (syncIndicator) {
+      syncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Offline Cache</span>';
+    }
+  } finally {
+    if (btnRefreshLiveStream) {
+      btnRefreshLiveStream.disabled = false;
+      btnRefreshLiveStream.classList.remove("opacity-75");
+      btnRefreshLiveStream.innerHTML = '<i class="ph-bold ph-lightning text-xs text-amber-500"></i><span>Live Ingest</span>';
+    }
+    if (btnRefreshLive) {
+      btnRefreshLive.disabled = false;
+      btnRefreshLive.classList.remove("opacity-75");
+      btnRefreshLive.innerHTML = '<i class="ph-bold ph-arrows-clockwise text-sm text-red-500"></i><span>Refresh</span>';
+    }
+  }
+}
+
 function setupRoutingAndHistory() {
   const btnOpenAnalytics = document.getElementById("btn-open-analytics");
   const navBtnAnalytics = document.getElementById("nav-btn-analytics");
+  const navBtnLiveDashboard = document.getElementById("nav-btn-live-dashboard");
   const navBtnCampaignFinder = document.getElementById("nav-btn-campaign-finder");
   const btnBackToMaster = document.getElementById("btn-back-to-master");
   const btnCampaignsBackToMaster = document.getElementById("btn-campaigns-back-to-master");
+  const btnLiveBack = document.getElementById("btn-live-back");
+  const btnRefreshLive = document.getElementById("btn-refresh-live");
+  const btnThemeToggleLive = document.getElementById("btn-theme-toggle-live");
   const btnBackFromReport = document.getElementById("btn-back-from-report");
   const btnReportAnalytics = document.getElementById("btn-report-analytics");
   const btnReportCopyTsv = document.getElementById("btn-report-copy-tsv");
@@ -1639,6 +2033,44 @@ function setupRoutingAndHistory() {
   const btnReportDelete = document.getElementById("btn-report-delete");
   const btnRefreshSaved = document.getElementById("btn-refresh-saved-reports");
   const btnThemeToggleCampaigns = document.getElementById("btn-theme-toggle-campaigns");
+
+  if (navBtnLiveDashboard) {
+    navBtnLiveDashboard.addEventListener("click", (e) => {
+      e.preventDefault();
+      saveAppState();
+      switchToView("live", true);
+    });
+  }
+
+  if (btnLiveBack) {
+    btnLiveBack.addEventListener("click", () => {
+      switchToView("master", true);
+    });
+  }
+
+  if (btnRefreshLive) {
+    btnRefreshLive.addEventListener("click", () => {
+      initLiveDashboard(true);
+    });
+  }
+
+  const btnRefreshLiveStream = document.getElementById("btn-refresh-live-stream");
+  if (btnRefreshLiveStream) {
+    btnRefreshLiveStream.addEventListener("click", () => {
+      initLiveDashboard(true);
+    });
+  }
+
+  if (btnThemeToggleLive) {
+    btnThemeToggleLive.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      updateThemeButtons(isDark);
+      if (liveRpcChartInstance) {
+        initLiveDashboard();
+      }
+    });
+  }
 
   if (btnOpenAnalytics) {
     btnOpenAnalytics.addEventListener("click", () => {
@@ -1725,7 +2157,9 @@ function setupRoutingAndHistory() {
   window.addEventListener("popstate", (e) => {
     const path = window.location.pathname;
     const hash = window.location.hash;
-    if (path === "/campaigns" || e.state?.view === "campaigns" || hash === "#campaigns") {
+    if (path === "/live" || e.state?.view === "live" || hash === "#live") {
+      switchToView("live", false);
+    } else if (path === "/campaigns" || e.state?.view === "campaigns" || hash === "#campaigns") {
       switchToView("campaigns", false);
     } else if (path === "/analytics" || e.state?.view === "analytics" || hash === "#analytics") {
       switchToView("analytics", false);
@@ -1741,7 +2175,9 @@ function setupRoutingAndHistory() {
 
   const path = window.location.pathname;
   const hash = window.location.hash;
-  if (path === "/campaigns" || hash === "#campaigns") {
+  if (path === "/live" || hash === "#live") {
+    switchToView("live", false);
+  } else if (path === "/campaigns" || hash === "#campaigns") {
     switchToView("campaigns", false);
   } else if (path === "/analytics" || hash === "#analytics") {
     switchToView("analytics", false);
@@ -1884,7 +2320,11 @@ function handleSuccessResults(response) {
   const dateWindow = currentSummary.date_window || {};
   const sDate = currentSummary.start_date || dateWindow.start_date || "2026-10-01";
   const eDate = currentSummary.end_date || dateWindow.end_date || "2026-10-31";
-  const days = dateWindow.total_days || 31;
+  const days = dateWindow.total_days || (
+    sDate && eDate
+      ? Math.max(1, Math.round((new Date(eDate) - new Date(sDate)) / (1000 * 60 * 60 * 24)) + 1)
+      : 1
+  );
   const title = currentSummary.date_range
     ? `${currentSummary.date_range} Run`
     : `${sDate} to ${eDate} Run`;
@@ -1892,7 +2332,7 @@ function handleSuccessResults(response) {
   currentReportId = `report_${sDate.replace(/-/g, "")}_${eDate.replace(/-/g, "")}`;
   setReportViewMeta(
     title,
-    `${sDate} to ${eDate} (${days} Days)`,
+    `${sDate} to ${eDate} (${days} ${days === 1 ? 'Day' : 'Days'})`,
     new Date().toISOString()
   );
 

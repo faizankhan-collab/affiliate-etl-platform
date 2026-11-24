@@ -1,0 +1,524 @@
+{
+  "date": "2026-11-17",
+  "merchants": [
+    {
+      "brand": "Vijay Sales",
+      "network": "icubeswire",
+      "clicks": 11080,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "critical",
+      "splits": [
+        {
+          "network": "icubeswire",
+          "clicks": 5547,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 50.1
+        },
+        {
+          "network": "cuelinks",
+          "clicks": 5533,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 49.9
+        }
+      ]
+    },
+    {
+      "brand": "Ajio",
+      "network": "Special (OWN)",
+      "clicks": 6217,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "critical",
+      "splits": [
+        {
+          "network": "Special (OWN)",
+          "clicks": 6217,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Reliance Digital",
+      "network": "affinity",
+      "clicks": 5801,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "critical",
+      "splits": [
+        {
+          "network": "affinity",
+          "clicks": 5801,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Croma",
+      "network": "admitad",
+      "clicks": 5166,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "critical",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 5166,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Amazon",
+      "network": "zonet",
+      "clicks": 97345,
+      "revenue": 14925.42,
+      "rpc": 0.1533,
+      "baseline_rpc": 0.1472,
+      "change": "+4.1%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "zonet",
+          "clicks": 91258,
+          "revenue": 14925.42,
+          "rpc": 0.1636,
+          "share_pct": 93.7
+        },
+        {
+          "network": "digimodo",
+          "clicks": 5960,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 6.1
+        },
+        {
+          "network": "Pantech",
+          "clicks": 127,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 0.1
+        }
+      ]
+    },
+    {
+      "brand": "Myntra",
+      "network": "zonet",
+      "clicks": 24853,
+      "revenue": 14476.52,
+      "rpc": 0.5825,
+      "baseline_rpc": 0.5592,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "zonet",
+          "clicks": 17384,
+          "revenue": 11515.82,
+          "rpc": 0.6624,
+          "share_pct": 69.9
+        },
+        {
+          "network": "cj",
+          "clicks": 6210,
+          "revenue": 2034.07,
+          "rpc": 0.3275,
+          "share_pct": 25.0
+        },
+        {
+          "network": "admitad",
+          "clicks": 1259,
+          "revenue": 897.22,
+          "rpc": 0.7126,
+          "share_pct": 5.1
+        },
+        {
+          "network": "cashkaro",
+          "clicks": 0,
+          "revenue": 29.41,
+          "rpc": 0.0,
+          "share_pct": 0.0
+        }
+      ]
+    },
+    {
+      "brand": "macys",
+      "network": "cuelinks",
+      "clicks": 21,
+      "revenue": 2261.38,
+      "rpc": 107.6848,
+      "baseline_rpc": 103.3774,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cuelinks",
+          "clicks": 21,
+          "revenue": 2261.38,
+          "rpc": 107.6848,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "TatacliQ",
+      "network": "admitad",
+      "clicks": 4212,
+      "revenue": 1321.14,
+      "rpc": 0.3137,
+      "baseline_rpc": 0.3012,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 4212,
+          "revenue": 1321.14,
+          "rpc": 0.3137,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "AirIndia",
+      "network": "cuelinks",
+      "clicks": 240,
+      "revenue": 880.0,
+      "rpc": 3.6667,
+      "baseline_rpc": 3.52,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cuelinks",
+          "clicks": 124,
+          "revenue": 880.0,
+          "rpc": 7.0968,
+          "share_pct": 51.7
+        },
+        {
+          "network": "Special (OWN)",
+          "clicks": 116,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 48.3
+        }
+      ]
+    },
+    {
+      "brand": "Campus Shoes",
+      "network": "icubeswire",
+      "clicks": 154,
+      "revenue": 851.53,
+      "rpc": 5.5294,
+      "baseline_rpc": 5.3082,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "icubeswire",
+          "clicks": 154,
+          "revenue": 851.53,
+          "rpc": 5.5294,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "firstcry",
+      "network": "admitad",
+      "clicks": 1649,
+      "revenue": 782.0,
+      "rpc": 0.4742,
+      "baseline_rpc": 0.4552,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 1649,
+          "revenue": 782.0,
+          "rpc": 0.4742,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Nykaa",
+      "network": "admitad",
+      "clicks": 1632,
+      "revenue": 378.83,
+      "rpc": 0.2321,
+      "baseline_rpc": 0.2228,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 1632,
+          "revenue": 378.83,
+          "rpc": 0.2321,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Shopsy",
+      "network": "admitad",
+      "clicks": 1645,
+      "revenue": 316.05,
+      "rpc": 0.1921,
+      "baseline_rpc": 0.1844,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 830,
+          "revenue": 144.91,
+          "rpc": 0.1746,
+          "share_pct": 50.5
+        },
+        {
+          "network": "cuelinks",
+          "clicks": 815,
+          "revenue": 171.14,
+          "rpc": 0.21,
+          "share_pct": 49.5
+        }
+      ]
+    },
+    {
+      "brand": "Decathlon",
+      "network": "icubeswire",
+      "clicks": 486,
+      "revenue": 191.51,
+      "rpc": 0.3941,
+      "baseline_rpc": 0.3783,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "icubeswire",
+          "clicks": 486,
+          "revenue": 191.51,
+          "rpc": 0.3941,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Libas",
+      "network": "admitad",
+      "clicks": 61,
+      "revenue": 135.9,
+      "rpc": 2.2279,
+      "baseline_rpc": 2.1388,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 61,
+          "revenue": 135.9,
+          "rpc": 2.2279,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "MuscleBlaze",
+      "network": "cashkaro",
+      "clicks": 55,
+      "revenue": 131.12,
+      "rpc": 2.384,
+      "baseline_rpc": 2.2886,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cashkaro",
+          "clicks": 55,
+          "revenue": 131.12,
+          "rpc": 2.384,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Plum Goodness",
+      "network": "cuelinks",
+      "clicks": 21,
+      "revenue": 110.28,
+      "rpc": 5.2514,
+      "baseline_rpc": 5.0413,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cuelinks",
+          "clicks": 21,
+          "revenue": 110.28,
+          "rpc": 5.2514,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Snitch",
+      "network": "icubeswire",
+      "clicks": 194,
+      "revenue": 97.94,
+      "rpc": 0.5048,
+      "baseline_rpc": 0.4846,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "icubeswire",
+          "clicks": 194,
+          "revenue": 97.94,
+          "rpc": 0.5048,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Puma",
+      "network": "admitad",
+      "clicks": 469,
+      "revenue": 75.42,
+      "rpc": 0.1608,
+      "baseline_rpc": 0.1544,
+      "change": "+4.1%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 469,
+          "revenue": 75.42,
+          "rpc": 0.1608,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "gonoise",
+      "network": "cuelinks",
+      "clicks": 79,
+      "revenue": 67.07,
+      "rpc": 0.849,
+      "baseline_rpc": 0.815,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cuelinks",
+          "clicks": 79,
+          "revenue": 67.07,
+          "rpc": 0.849,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Dot and Key",
+      "network": "admitad",
+      "clicks": 95,
+      "revenue": 53.8,
+      "rpc": 0.5663,
+      "baseline_rpc": 0.5436,
+      "change": "+4.2%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 52,
+          "revenue": 53.8,
+          "rpc": 1.0346,
+          "share_pct": 54.7
+        },
+        {
+          "network": "icubeswire",
+          "clicks": 43,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 45.3
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "network": "admitad",
+      "clicks": 2005,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 2005,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "Netmeds",
+      "network": "cashkaro",
+      "clicks": 1511,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "cashkaro",
+          "clicks": 1511,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    },
+    {
+      "brand": "NykaaFashion",
+      "network": "admitad",
+      "clicks": 1009,
+      "revenue": 0.0,
+      "rpc": 0.0,
+      "baseline_rpc": 0.08,
+      "change": "-100.0%",
+      "health": "healthy",
+      "splits": [
+        {
+          "network": "admitad",
+          "clicks": 1009,
+          "revenue": 0.0,
+          "rpc": 0.0,
+          "share_pct": 100.0
+        }
+      ]
+    }
+  ]
+}
