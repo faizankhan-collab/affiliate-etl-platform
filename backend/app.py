@@ -81,22 +81,25 @@ def save_report_to_disk(
 
     # Enforce verified correction for Dell on CJ for 2026-10-28
     if start_date and end_date and (start_date <= "2026-10-28" <= end_date):
+        dell_cj_found = False
         for row in data:
             if str(row.get("WEBSITE / BRAND", "")).strip().lower() == "dell" and str(row.get("AFFILIATE NETWORK", "")).strip().lower() == "cj":
                 if float(row.get("Revenue", 0.0) or 0.0) > 0.0:
                     row["Revenue"] = 0.0
                     row["RPCs"] = 0.0
-        # Recompute totals if Dell was present
-        recalc_rev = round(sum(float(r.get("Revenue", 0.0) or 0.0) for r in data), 2)
-        summary["total_revenue"] = recalc_rev
-        clicks_val = int(summary.get("total_internal_clicks", 0) or 0)
-        summary["overall_portfolio_rpc"] = round(recalc_rev / clicks_val, 4) if clicks_val > 0 else 0.0
-        summary["matched_revenue_rows"] = sum(1 for r in data if float(r.get("Revenue", 0.0) or 0.0) > 0.0)
-        if "network_processing_logs" in summary:
-            for n_log in summary["network_processing_logs"]:
-                if n_log.get("detected_network") == "cj":
-                    cj_rev = sum(float(r.get("Revenue", 0.0) or 0.0) for r in data if str(r.get("AFFILIATE NETWORK", "")).strip().lower() == "cj")
-                    n_log["total_revenue"] = round(cj_rev, 2)
+                    dell_cj_found = True
+        # Recompute totals ONLY if Dell on CJ with > 0 revenue was actually present and modified
+        if dell_cj_found:
+            recalc_rev = round(sum(float(r.get("Revenue", 0.0) or 0.0) for r in data), 2)
+            summary["total_revenue"] = recalc_rev
+            clicks_val = int(summary.get("total_internal_clicks", 0) or 0)
+            summary["overall_portfolio_rpc"] = round(recalc_rev / clicks_val, 4) if clicks_val > 0 else 0.0
+            summary["matched_revenue_rows"] = sum(1 for r in data if float(r.get("Revenue", 0.0) or 0.0) > 0.0)
+            if "network_processing_logs" in summary:
+                for n_log in summary["network_processing_logs"]:
+                    if n_log.get("detected_network") == "cj":
+                        cj_rev = sum(float(r.get("Revenue", 0.0) or 0.0) for r in data if str(r.get("AFFILIATE NETWORK", "")).strip().lower() == "cj")
+                        n_log["total_revenue"] = round(cj_rev, 2)
 
     report_obj = {
         "id": report_id,
@@ -116,7 +119,7 @@ def save_report_to_disk(
     # If single-day report, automatically synchronize live daily telemetry cache
     if start_date and end_date and start_date == end_date:
         try:
-            live_cache_file = os.path.join(BASE_DIR, "backend", "live_cache", "live_daily_metrics.json")
+            live_cache_file = os.path.join(BASE_DIR, "live_cache", "live_daily_metrics.json")
             os.makedirs(os.path.dirname(live_cache_file), exist_ok=True)
             daily_m = {}
             if os.path.exists(live_cache_file):
@@ -179,6 +182,12 @@ def ensure_default_reports():
 
 
 ensure_default_reports()
+
+
+@app.get("/health")
+async def health_check():
+    """Lightweight deployment health check for cloud hosts (Render, Docker)."""
+    return {"status": "ok", "app": "affiliate-etl-platform", "version": "1.0.0"}
 
 
 @app.get("/", response_class=HTMLResponse)
