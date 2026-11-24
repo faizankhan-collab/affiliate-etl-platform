@@ -117,7 +117,35 @@ class IcubeswireAdapter(BaseNetworkAdapter):
             invalid_mask = status_series.isin(["declined", "cancelled", "canceled", "rejected", "failed"])
             working = working[~invalid_mask]
 
-        # 5. Standardize brands & aggregate
+        # 5. Detect Conversions / Actions (Approved + Pending)
+        appr_conv_col = find_column(
+            working,
+            candidates=["approved conversions", "approved_conversions", "approved actions"],
+            exclude_keywords=["payout", "commission", "rate", "cr", "amount"],
+        )
+        pend_conv_col = find_column(
+            working,
+            candidates=["pending conversions", "pending_conversions", "pending actions"],
+            exclude_keywords=["payout", "commission", "rate", "cr", "amount"],
+        )
+        gen_conv_col = find_column(
+            working,
+            candidates=["conversions", "actions", "total conversions", "total actions", "sales", "orders"],
+            exclude_keywords=["payout", "commission", "rate", "cr", "amount", "approved", "pending"],
+        )
+        if appr_conv_col and pend_conv_col and appr_conv_col != pend_conv_col:
+            clean_conv = clean_currency_series(working[appr_conv_col]).fillna(0) + clean_currency_series(working[pend_conv_col]).fillna(0)
+        elif appr_conv_col:
+            clean_conv = clean_currency_series(working[appr_conv_col]).fillna(0)
+        elif gen_conv_col:
+            clean_conv = clean_currency_series(working[gen_conv_col]).fillna(0)
+        elif pend_conv_col:
+            clean_conv = clean_currency_series(working[pend_conv_col]).fillna(0)
+        else:
+            clean_conv = pd.Series(1 if status_col else 0, index=working.index)
+        clean_conv = clean_conv.astype(int)
+
+        # 6. Standardize brands & aggregate
         results = []
         for _, row in working.iterrows():
             raw_b = str(row[brand_col]).strip() if pd.notna(row[brand_col]) else ""
@@ -133,6 +161,7 @@ class IcubeswireAdapter(BaseNetworkAdapter):
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": float(row["_clean_rev"]),
+                    "transactions": int(clean_conv.loc[row.name]) if row.name in clean_conv else 0,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -141,13 +170,14 @@ class IcubeswireAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )

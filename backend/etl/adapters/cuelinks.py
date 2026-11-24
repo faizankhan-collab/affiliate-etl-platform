@@ -95,7 +95,25 @@ class CuelinksAdapter(BaseNetworkAdapter):
             )
             working = working[~invalid_mask]
 
-        # 4. Standardize brands & aggregate
+        # 4. Detect Transactions / Conversions column
+        sales_col = find_column(
+            working,
+            candidates=[
+                "transactions",
+                "total transactions",
+                "conversions",
+                "total conversions",
+                "orders",
+                "sales",
+            ],
+            exclude_keywords=["amount", "commission", "payout", "clicks", "epc", "cr", "id"],
+        )
+        if sales_col and sales_col in working.columns:
+            clean_sales = clean_currency_series(working[sales_col]).fillna(0).astype(int)
+        else:
+            clean_sales = pd.Series(1 if status_col else 0, index=working.index)
+
+        # 5. Standardize brands & aggregate
         results = []
         for _, row in working.iterrows():
             raw_b = str(row[brand_col]).strip() if pd.notna(row[brand_col]) else ""
@@ -108,6 +126,7 @@ class CuelinksAdapter(BaseNetworkAdapter):
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": float(row["_clean_rev"]),
+                    "transactions": int(clean_sales.loc[row.name]) if row.name in clean_sales else 0,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -116,13 +135,14 @@ class CuelinksAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )

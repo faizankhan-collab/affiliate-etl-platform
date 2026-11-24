@@ -937,6 +937,11 @@ class ETLEngine:
         # Combine all affiliate revenue tables
         if processed_network_dfs:
             combined_revenue_df = pd.concat(processed_network_dfs, ignore_index=True)
+            if "transactions" not in combined_revenue_df.columns:
+                combined_revenue_df["transactions"] = 0
+            else:
+                combined_revenue_df["transactions"] = combined_revenue_df["transactions"].fillna(0).astype(int)
+
             if (
                 not combined_revenue_df.empty
                 and "brand" in combined_revenue_df.columns
@@ -946,6 +951,7 @@ class ETLEngine:
                     combined_revenue_df.groupby(["brand", "network"], as_index=False)
                     .agg(
                         revenue=("revenue", "sum"),
+                        transactions=("transactions", "sum"),
                         original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                         is_matched=("is_matched", "all"),
                     )
@@ -955,22 +961,23 @@ class ETLEngine:
                 affiliate_agg["n_key"] = affiliate_agg["network"].apply(make_net_match_key)
             else:
                 affiliate_agg = pd.DataFrame(
-                    columns=["brand", "network", "revenue", "original_brand", "is_matched", "b_key", "n_key"]
+                    columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched", "b_key", "n_key"]
                 )
         else:
             affiliate_agg = pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched", "b_key", "n_key"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched", "b_key", "n_key"]
             )
 
         # 3. Perform LEFT JOIN on case-insensitive alike keys: ['b_key', 'n_key']
         merged_df = pd.merge(
             base_df,
-            affiliate_agg[["b_key", "n_key", "revenue"]],
+            affiliate_agg[["b_key", "n_key", "revenue", "transactions"]],
             on=["b_key", "n_key"],
             how="left",
         )
 
         merged_df["revenue"] = merged_df["revenue"].fillna(0.0).round(2)
+        merged_df["transactions"] = merged_df["transactions"].fillna(0).astype(int)
 
         # 4. Dynamic Auto-Match: Check for affiliate revenue rows where brand is known but network pair was missing
         orphans = []
@@ -996,6 +1003,7 @@ class ETLEngine:
             for _, urow in unmatched_rows.iterrows():
                 b_k = urow["b_key"]
                 rev_val = round(float(urow["revenue"]), 2)
+                tx_val = int(urow.get("transactions", 0))
                 if b_k in known_brands_map:
                     # Verified brand in portfolio! Auto-include in master table
                     orig_b = known_brands_map[b_k]
@@ -1011,6 +1019,7 @@ class ETLEngine:
                             "original_network": orig_n,
                             "internal_clicks": 0,
                             "revenue": rev_val,
+                            "transactions": tx_val,
                         }
                     )
                 else:
@@ -1020,6 +1029,7 @@ class ETLEngine:
                             "brand": urow["brand"],
                             "network": urow["network"],
                             "revenue": rev_val,
+                            "transactions": tx_val,
                             "original_brand": urow.get("original_brand", ""),
                         }
                     )
@@ -1028,8 +1038,17 @@ class ETLEngine:
                 auto_df = pd.DataFrame(auto_matched_rows)
                 merged_df = pd.concat([merged_df, auto_df], ignore_index=True)
 
-        # 5. Calculate RPCs = Revenue / Internal Clicks
-        # Preserves up to 4 decimal places for sub-penny performance (e.g. ₹0.0038)
+        # 5. Calculate RPCs = Revenue / Internal Clicks & Conversion Ratio = Transactions / Internal Clicks (%)
+        def calc_cr(row):
+            clicks = row["internal_clicks"]
+            txs = row["transactions"]
+            if clicks > 0 and txs > 0:
+                val = (float(txs) / float(clicks)) * 100.0
+                if val < 0.01:
+                    return round(val, 4)
+                return round(val, 2)
+            return 0.0
+
         def calc_rpc(row):
             clicks = row["internal_clicks"]
             rev = row["revenue"]
@@ -1041,6 +1060,7 @@ class ETLEngine:
                 return round(val, 2)
             return 0.0
 
+        merged_df["Conversion Ratio"] = merged_df.apply(calc_cr, axis=1)
         merged_df["RPCs"] = merged_df.apply(calc_rpc, axis=1)
 
         # Preserve original user ordering
@@ -1053,6 +1073,7 @@ class ETLEngine:
                 "AFFILIATE NETWORK": merged_df["original_network"],
                 "SUM of INTERNAL CLICKS": merged_df["internal_clicks"],
                 "Revenue": merged_df["revenue"],
+                "Conversion Ratio": merged_df["Conversion Ratio"],
                 "RPCs": merged_df["RPCs"],
             }
         )
@@ -1064,18 +1085,25 @@ class ETLEngine:
             )
             if dell_cj_mask.any():
                 master_output_df.loc[dell_cj_mask, "Revenue"] = 0.0
+                master_output_df.loc[dell_cj_mask, "Conversion Ratio"] = 0.0
                 master_output_df.loc[dell_cj_mask, "RPCs"] = 0.0
 
         total_rev = float(master_output_df["Revenue"].sum())
         total_clicks = int(master_output_df["SUM of INTERNAL CLICKS"].sum())
+        total_txs = int(merged_df["transactions"].sum()) if "transactions" in merged_df.columns else 0
         overall_rpc = (
             round(total_rev / total_clicks, 4) if total_clicks > 0 else 0.0
+        )
+        overall_cr = (
+            round((total_txs / total_clicks) * 100.0, 2) if total_clicks > 0 else 0.0
         )
 
         summary = {
             "total_revenue": round(total_rev, 2),
             "total_internal_clicks": total_clicks,
             "overall_portfolio_rpc": overall_rpc,
+            "total_transactions": total_txs,
+            "overall_conversion_ratio": overall_cr,
             "total_master_rows": len(master_output_df),
             "matched_revenue_rows": int((master_output_df["Revenue"] > 0).sum()),
             "orphaned_affiliate_records": orphans,
@@ -1086,6 +1114,9 @@ class ETLEngine:
             "start_date": start_date or "",
             "end_date": end_date or "",
         }
+
+        # Stash transactions in master_output_df attrs for downstream record mapping
+        master_output_df.attrs["transactions"] = merged_df["transactions"].tolist()
 
         return {
             "master_df": master_output_df,
@@ -1135,11 +1166,35 @@ class ETLEngine:
                     if val and float(val) > 0:
                         cell.font = Font(color="1F4E79", bold=True)
                 elif c_idx == 5:
+                    # Column 5: Conversion Ratio (percentage format)
+                    if val and float(val) > 0:
+                        v = float(val) / 100.0
+                        cell.value = v
+                        if v < 0.0001:
+                            cell.number_format = "0.0000%"
+                        else:
+                            cell.number_format = "0.00%"
+                    else:
+                        cell.value = 0.0
+                        cell.number_format = "0.00%"
+                    cell.alignment = Alignment(horizontal="right", vertical="center")
+                elif c_idx == 6:
+                    # Column 6: RPCs
                     if val and float(val) > 0 and float(val) < 0.01:
                         cell.number_format = "0.0000"
                     else:
                         cell.number_format = "0.00"
                     cell.alignment = Alignment(horizontal="right", vertical="center")
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = max(max_len + 4, 14)
+
+        buf = BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return buf
 
         for col in ws.columns:
             max_len = max(len(str(cell.value or "")) for cell in col)

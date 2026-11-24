@@ -863,6 +863,8 @@
             <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sort:</span>
             <select id="select-table-sort" class="px-2.5 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer">
               <option value="default">Default Order</option>
+              <option value="cr-desc">Conversion Ratio: High → Low (Descending)</option>
+              <option value="cr-asc">Conversion Ratio: Low → High (Ascending)</option>
               <option value="rpc-desc">RPCs: High → Low (Descending)</option>
               <option value="rpc-asc">RPCs: Low → High (Ascending)</option>
               <option value="rev-desc">Revenue: High → Low (Descending)</option>
@@ -904,6 +906,12 @@
                 <th class="py-3 px-4 text-right cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="revenue" title="Click to sort by Revenue">
                   <div class="inline-flex items-center justify-end gap-1.5 w-full">
                     <span>Revenue (₹)</span>
+                    <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
+                  </div>
+                </th>
+                <th class="py-3 px-4 text-right cursor-pointer hover:text-emerald-500 dark:hover:text-emerald-400 transition" data-sort-col="cr" title="Click to sort by Conversion Ratio (Transactions / Clicks)">
+                  <div class="inline-flex items-center justify-end gap-1.5 w-full">
+                    <span>Conversion Ratio</span>
                     <span class="sort-indicator text-[10px] text-slate-400 dark:text-slate-600">↕</span>
                   </div>
                 </th>
@@ -1646,6 +1654,7 @@
                     <th class="py-2.5 px-3">AFFILIATE NETWORK</th>
                     <th class="py-2.5 px-3 text-right">SUM of INTERNAL CLICKS</th>
                     <th class="py-2.5 px-3 text-right">Revenue (₹)</th>
+                    <th class="py-2.5 px-3 text-right">Conversion Ratio</th>
                     <th class="py-2.5 px-3 text-right font-bold text-emerald-900 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40">RPCs</th>
                     <th class="py-2.5 px-3 text-center">Status</th>
                   </tr>

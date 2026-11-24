@@ -86,6 +86,7 @@ def save_report_to_disk(
             if str(row.get("WEBSITE / BRAND", "")).strip().lower() == "dell" and str(row.get("AFFILIATE NETWORK", "")).strip().lower() == "cj":
                 if float(row.get("Revenue", 0.0) or 0.0) > 0.0:
                     row["Revenue"] = 0.0
+                    row["Conversion Ratio"] = 0.0
                     row["RPCs"] = 0.0
                     dell_cj_found = True
         # Recompute totals ONLY if Dell on CJ with > 0 revenue was actually present and modified
@@ -307,6 +308,7 @@ async def get_latest_master_data(
 
         # Ensure numeric columns are cleanly populated
         master_df["Revenue"] = master_df["Revenue"].fillna(0.0)
+        master_df["Conversion Ratio"] = master_df["Conversion Ratio"].fillna(0.0)
         master_df["RPCs"] = master_df["RPCs"].fillna(0.0)
         master_df["SUM of INTERNAL CLICKS"] = master_df["SUM of INTERNAL CLICKS"].fillna(0)
 
@@ -469,6 +471,7 @@ async def process_demo_data(
         )
         master_df = results["master_df"].copy()
         master_df["Revenue"] = master_df["Revenue"].fillna(0.0)
+        master_df["Conversion Ratio"] = master_df["Conversion Ratio"].fillna(0.0)
         master_df["RPCs"] = master_df["RPCs"].fillna(0.0)
         master_df["SUM of INTERNAL CLICKS"] = master_df["SUM of INTERNAL CLICKS"].fillna(0)
         summary = results["summary"]

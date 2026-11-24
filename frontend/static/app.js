@@ -1156,15 +1156,19 @@ function setupActionButtons() {
       "AFFILIATE NETWORK",
       "SUM of INTERNAL CLICKS",
       "Revenue",
+      "Conversion Ratio",
       "RPCs",
     ];
     let tsv = headers.join("\t") + "\n";
     currentMasterData.forEach((row) => {
+      const cr = Number(row["Conversion Ratio"]) || 0;
+      const crStr = cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
       tsv += [
         row["WEBSITE / BRAND"],
         row["AFFILIATE NETWORK"],
         row["SUM of INTERNAL CLICKS"],
         row["Revenue"],
+        crStr,
         row["RPCs"],
       ].join("\t") + "\n";
     });
@@ -1248,15 +1252,19 @@ function triggerCopyTsv(feedbackElId = "copy-text") {
     "AFFILIATE NETWORK",
     "SUM of INTERNAL CLICKS",
     "Revenue",
+    "Conversion Ratio",
     "RPCs",
   ];
   let tsv = headers.join("\t") + "\n";
   rows.forEach((row) => {
+    const cr = Number(row["Conversion Ratio"]) || 0;
+    const crStr = cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
     tsv += [
       row["WEBSITE / BRAND"],
       row["AFFILIATE NETWORK"],
       row["SUM of INTERNAL CLICKS"],
       row["Revenue"],
+      crStr,
       row["RPCs"],
     ].join("\t") + "\n";
   });
@@ -2564,7 +2572,11 @@ function applyTableFiltersAndSort() {
   }
 
   // 3. Sorting
-  if (tableSortKey === "rpc-desc") {
+  if (tableSortKey === "cr-desc") {
+    rows.sort((a, b) => (Number(b["Conversion Ratio"]) || 0) - (Number(a["Conversion Ratio"]) || 0));
+  } else if (tableSortKey === "cr-asc") {
+    rows.sort((a, b) => (Number(a["Conversion Ratio"]) || 0) - (Number(b["Conversion Ratio"]) || 0));
+  } else if (tableSortKey === "rpc-desc") {
     rows.sort((a, b) => (Number(b["RPCs"]) || 0) - (Number(a["RPCs"]) || 0));
   } else if (tableSortKey === "rpc-asc") {
     rows.sort((a, b) => (Number(a["RPCs"]) || 0) - (Number(b["RPCs"]) || 0));
@@ -2623,6 +2635,7 @@ function updateSortHeaderIndicators() {
     if (!indicator) return;
 
     const isActive =
+      (col === "cr" && (tableSortKey === "cr-desc" || tableSortKey === "cr-asc")) ||
       (col === "rpc" && (tableSortKey === "rpc-desc" || tableSortKey === "rpc-asc")) ||
       (col === "revenue" && (tableSortKey === "rev-desc" || tableSortKey === "rev-asc")) ||
       (col === "clicks" && (tableSortKey === "clicks-desc" || tableSortKey === "clicks-asc")) ||
@@ -2652,6 +2665,13 @@ function updateSortHeaderIndicators() {
 function handleColumnHeaderSort(col) {
   if (col === "original") {
     tableSortKey = "default";
+  } else if (col === "cr") {
+    tableSortKey =
+      tableSortKey === "cr-desc"
+        ? "cr-asc"
+        : tableSortKey === "cr-asc"
+        ? "default"
+        : "cr-desc";
   } else if (col === "rpc") {
     tableSortKey =
       tableSortKey === "rpc-desc"
@@ -2725,6 +2745,8 @@ function renderMasterTable(rows, totalCount) {
     }
     if (tableSortKey !== "default") {
       const sortLabels = {
+        "cr-desc": "Conversion Ratio (High → Low)",
+        "cr-asc": "Conversion Ratio (Low → High)",
         "rpc-desc": "RPCs (High → Low)",
         "rpc-asc": "RPCs (Low → High)",
         "rev-desc": "Revenue (High → Low)",
@@ -2744,7 +2766,7 @@ function renderMasterTable(rows, totalCount) {
   if (rows.length === 0) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td colspan="6" class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
+      <td colspan="7" class="py-8 text-center text-slate-400 dark:text-slate-500 text-xs">
         <i class="ph-bold ph-funnel-x text-2xl mb-1 inline-block text-slate-300 dark:text-slate-600"></i>
         <p class="font-medium">No matching campaigns found</p>
         <p class="text-[11px] mt-0.5 text-slate-400 dark:text-slate-500">Try clearing filters or search query.</p>
@@ -2760,10 +2782,20 @@ function renderMasterTable(rows, totalCount) {
 
     const clicks = row["SUM of INTERNAL CLICKS"] || 0;
     const rev = row["Revenue"] || 0;
+    const cr = Number(row["Conversion Ratio"]) || 0;
     const rpc = row["RPCs"] || 0;
+    const txs = Number(row["Transactions"]) || 0;
 
     const revClass =
       rev > 0 ? "font-bold text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500";
+    const crDisplay =
+      cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
+    const crClass =
+      cr >= 1.0
+        ? "font-bold text-emerald-700 dark:text-emerald-300"
+        : cr > 0
+        ? "font-medium text-slate-800 dark:text-slate-200"
+        : "text-slate-400 dark:text-slate-500";
     const rpcClass =
       rpc > 0.20
         ? "font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 rounded px-1.5 py-0.5"
@@ -2784,6 +2816,7 @@ function renderMasterTable(rows, totalCount) {
       </td>
       <td class="py-2.5 px-4 text-right font-medium text-slate-800 dark:text-slate-100 font-mono">${formatNumber(clicks)}</td>
       <td class="py-2.5 px-4 text-right ${revClass} font-mono">${formatCurrency(rev)}</td>
+      <td class="py-2.5 px-4 text-right ${crClass} font-mono" title="${txs > 0 ? txs + ' transactions' : '0 transactions'}">${crDisplay}</td>
       <td class="py-2.5 px-4 text-right ${rpcClass} font-mono">${rpcDisplay}</td>
     `;
     tbody.appendChild(tr);

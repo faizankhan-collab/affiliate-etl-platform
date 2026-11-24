@@ -114,6 +114,17 @@ class CJAdapter(BaseNetworkAdapter):
         # Clean raw currency string (e.g. '$7,703.74' -> 7703.74)
         clean_usd = clean_currency_series(working[payout_col])
 
+        # Detect Sales / Transactions column
+        sales_col = find_column(
+            working,
+            candidates=["sales", "orders", "transactions", "conversions", "items"],
+            exclude_keywords=["sale amount", "sales amount", "commission", "payout", "clicks", "epc", "cr"],
+        )
+        if sales_col and sales_col in working.columns:
+            clean_sales = clean_currency_series(working[sales_col]).fillna(0).astype(int)
+        else:
+            clean_sales = pd.Series(0, index=working.index)
+
         # 4. Currency conversion: Convert USD to INR
         # In CJ, commission is reported in USD ($). Buyhatke master reconciliation requires INR (₹).
         is_usd = (
@@ -139,16 +150,19 @@ class CJAdapter(BaseNetworkAdapter):
                 continue
 
             rev_val = float(row["_clean_rev"])
+            tx_val = int(clean_sales.loc[row.name]) if row.name in clean_sales else 0
             # Verified adjustment: Dell on CJ for Oct 28 had an erroneous $2,090 transaction (₹198,006.60) with 0 real revenue
             raw_payout = float(clean_usd.loc[row.name]) if row.name in clean_usd else 0.0
             if std_b.lower() == "dell" and (abs(rev_val - 198006.6) < 200.0 or abs(raw_payout - 2090.0) < 5.0):
                 rev_val = 0.0
+                tx_val = 0
 
             results.append(
                 {
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": rev_val,
+                    "transactions": tx_val,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -157,13 +171,14 @@ class CJAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )

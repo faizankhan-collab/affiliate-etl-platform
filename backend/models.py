@@ -12,7 +12,9 @@ class MasterRow(BaseModel):
     network: str = Field(..., alias="AFFILIATE NETWORK")
     internal_clicks: int = Field(..., alias="SUM of INTERNAL CLICKS")
     revenue: float = Field(..., alias="Revenue")
+    conversion_ratio: Optional[float] = Field(0.0, alias="Conversion Ratio")
     rpcs: float = Field(..., alias="RPCs")
+    transactions: Optional[int] = Field(0, alias="Transactions")
 
 
 class OrphanedRecord(BaseModel):
@@ -35,6 +37,8 @@ class SummaryMetrics(BaseModel):
     total_revenue: float
     total_internal_clicks: int
     overall_portfolio_rpc: float
+    total_transactions: Optional[int] = 0
+    overall_conversion_ratio: Optional[float] = 0.0
     total_master_rows: int
     matched_revenue_rows: int
     orphaned_affiliate_records: List[OrphanedRecord]

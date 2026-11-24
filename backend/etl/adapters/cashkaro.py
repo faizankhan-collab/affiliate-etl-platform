@@ -106,7 +106,28 @@ class CashkaroAdapter(BaseNetworkAdapter):
             invalid_mask = status_series.isin(["declined", "cancelled", "canceled", "rejected", "failed"])
             working = working[~invalid_mask]
 
-        # 4. Standardize brands & aggregate
+        # 4. Extract Conversions / Transactions (Pending + Confirmed Conversions)
+        pending_conv_col = find_column(
+            working,
+            candidates=["pending conversions", "pending orders", "pending transactions"],
+            exclude_keywords=["payout", "commission", "amount", "cashback"],
+        )
+        confirmed_conv_col = find_column(
+            working,
+            candidates=["conversions", "confirmed conversions", "orders", "transactions", "sales"],
+            exclude_keywords=["pending", "payout", "commission", "amount", "cashback", "cr", "rate"],
+        )
+        if pending_conv_col and confirmed_conv_col:
+            clean_conv = clean_currency_series(working[pending_conv_col]).fillna(0) + clean_currency_series(working[confirmed_conv_col]).fillna(0)
+        elif confirmed_conv_col:
+            clean_conv = clean_currency_series(working[confirmed_conv_col]).fillna(0)
+        elif pending_conv_col:
+            clean_conv = clean_currency_series(working[pending_conv_col]).fillna(0)
+        else:
+            clean_conv = pd.Series(1 if status_col else 0, index=working.index)
+        clean_conv = clean_conv.astype(int)
+
+        # 5. Standardize brands & aggregate
         results = []
         for _, row in working.iterrows():
             raw_b = str(row[brand_col]).strip() if pd.notna(row[brand_col]) else ""
@@ -119,6 +140,7 @@ class CashkaroAdapter(BaseNetworkAdapter):
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": float(row["_clean_rev"]),
+                    "transactions": int(clean_conv.loc[row.name]) if row.name in clean_conv else 0,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -127,13 +149,14 @@ class CashkaroAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )

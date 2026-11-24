@@ -837,6 +837,7 @@ function renderFilteredGrid(rows) {
   rows.forEach((row, idx) => {
     const clicks = Number(row["SUM of INTERNAL CLICKS"]) || 0;
     const rev = Number(row["Revenue"]) || 0;
+    const cr = Number(row["Conversion Ratio"]) || 0;
     const rpc = Number(row["RPCs"]) || 0;
 
     const tr = document.createElement("tr");
@@ -856,6 +857,8 @@ function renderFilteredGrid(rows) {
         ? "font-bold text-emerald-600 dark:text-emerald-400"
         : "text-slate-400 dark:text-slate-500";
 
+    const crDisplay = cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
+
     tr.innerHTML = `
       <td class="py-2 px-3 text-center text-slate-400 font-sans text-[11px]">${idx + 1}</td>
       <td class="py-2 px-3 font-semibold text-slate-900 dark:text-white font-sans">${escapeHtml(row["WEBSITE / BRAND"])}</td>
@@ -866,6 +869,7 @@ function renderFilteredGrid(rows) {
       </td>
       <td class="py-2 px-3 text-right font-medium text-slate-800 dark:text-slate-100 font-mono">${formatNumber(clicks)}</td>
       <td class="py-2 px-3 text-right font-bold ${rev > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"} font-mono">${formatCurrency(rev)}</td>
+      <td class="py-2 px-3 text-right text-slate-700 dark:text-slate-300 font-mono">${crDisplay}</td>
       <td class="py-2 px-3 text-right ${rpcClass} font-mono">₹${rpc > 0 && rpc < 0.01 ? rpc.toFixed(4) : rpc.toFixed(2)}</td>
       <td class="py-2 px-3 text-center">${statusBadge}</td>
     `;
@@ -909,14 +913,17 @@ function setupActionButtons() {
   if (btnExport) {
     btnExport.addEventListener("click", () => {
       if (!filteredData.length) return;
-      const headers = ["WEBSITE / BRAND", "AFFILIATE NETWORK", "SUM of INTERNAL CLICKS", "Revenue", "RPCs"];
+      const headers = ["WEBSITE / BRAND", "AFFILIATE NETWORK", "SUM of INTERNAL CLICKS", "Revenue", "Conversion Ratio", "RPCs"];
       let csv = headers.join(",") + "\n";
       filteredData.forEach((r) => {
+        const cr = Number(r["Conversion Ratio"]) || 0;
+        const crStr = cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
         csv += [
           `"${(r["WEBSITE / BRAND"] || "").replace(/"/g, '""')}"`,
           `"${(r["AFFILIATE NETWORK"] || "").replace(/"/g, '""')}"`,
           r["SUM of INTERNAL CLICKS"] || 0,
           r["Revenue"] || 0,
+          `"${crStr}"`,
           r["RPCs"] || 0,
         ].join(",") + "\n";
       });
@@ -935,14 +942,17 @@ function setupActionButtons() {
   if (btnCopyTsv) {
     btnCopyTsv.addEventListener("click", () => {
       if (!filteredData.length) return;
-      const headers = ["WEBSITE / BRAND", "AFFILIATE NETWORK", "SUM of INTERNAL CLICKS", "Revenue", "RPCs"];
+      const headers = ["WEBSITE / BRAND", "AFFILIATE NETWORK", "SUM of INTERNAL CLICKS", "Revenue", "Conversion Ratio", "RPCs"];
       let tsv = headers.join("\t") + "\n";
       filteredData.forEach((r) => {
+        const cr = Number(r["Conversion Ratio"]) || 0;
+        const crStr = cr > 0 ? (cr < 0.01 ? cr.toFixed(4) : cr.toFixed(2)) + "%" : "0.00%";
         tsv += [
           r["WEBSITE / BRAND"] || "",
           r["AFFILIATE NETWORK"] || "",
           r["SUM of INTERNAL CLICKS"] || 0,
           r["Revenue"] || 0,
+          crStr,
           r["RPCs"] || 0,
         ].join("\t") + "\n";
       });

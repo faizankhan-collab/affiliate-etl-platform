@@ -101,6 +101,17 @@ class GenericAdapter(BaseNetworkAdapter):
             invalid_mask = status_series.isin(["rejected", "declined", "cancelled", "canceled", "failed"])
             working = working[~invalid_mask]
 
+        # Detect transactions / conversions column
+        tx_col = find_column(
+            working,
+            candidates=["transactions", "conversions", "sales", "orders", "actions", "total conversions", "total actions"],
+            exclude_keywords=["type", "status", "id", "date", "revenue", "commission", "payout", "earnings", "cashback", "amount", "clicks", "cr", "epc"],
+        )
+        if tx_col and tx_col in working.columns:
+            clean_tx = clean_currency_series(working[tx_col]).fillna(0).astype(int)
+        else:
+            clean_tx = pd.Series(1 if status_col else 0, index=working.index)
+
         results = []
         for _, row in working.iterrows():
             raw_b = str(row[brand_col]).strip() if pd.notna(row[brand_col]) else ""
@@ -113,6 +124,7 @@ class GenericAdapter(BaseNetworkAdapter):
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": float(row["_clean_rev"]),
+                    "transactions": int(clean_tx.loc[row.name]) if row.name in clean_tx else 0,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -121,13 +133,14 @@ class GenericAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )

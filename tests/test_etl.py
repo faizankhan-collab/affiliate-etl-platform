@@ -118,9 +118,22 @@ class TestAffiliateETL(unittest.TestCase):
         buf = self.engine.export_to_excel_buffer(master_df)
         self.assertGreater(buf.getbuffer().nbytes, 1000)
 
+        # Check Columns Order
+        self.assertEqual(
+            list(master_df.columns),
+            [
+                "WEBSITE / BRAND",
+                "AFFILIATE NETWORK",
+                "SUM of INTERNAL CLICKS",
+                "Revenue",
+                "Conversion Ratio",
+                "RPCs",
+            ],
+        )
+
         # Check TSV export
         tsv = self.engine.export_to_tsv_string(master_df)
-        self.assertIn("Flipkart\tcuelinks\t1560054\t339899.7\t0.22", tsv)
+        self.assertIn("Flipkart\tcuelinks\t1560054\t339899.7\t0.0001\t0.22", tsv)
 
     def test_zonet_real_adapter(self):
         zonet_path = os.path.join(self.sample_dir, "zonet_real.csv")
@@ -630,7 +643,54 @@ class TestAffiliateETL(unittest.TestCase):
         master = res["master_df"]
         p_dell = master[master["WEBSITE / BRAND"] == "Dell"]
         self.assertEqual(float(p_dell["Revenue"].iloc[0]), 0.0)
+        self.assertEqual(float(p_dell["Conversion Ratio"].iloc[0]), 0.0)
         self.assertEqual(float(p_dell["RPCs"].iloc[0]), 0.0)
+
+    def test_conversion_ratio_calculation_and_column_placement(self):
+        """Verify Conversion Ratio (transactions / clicks * 100) placed directly to the left of RPCs."""
+        clicks_df = pd.DataFrame({
+            "WEBSITE / BRAND": ["BrandA", "BrandB", "BrandC"],
+            "AFFILIATE NETWORK": ["cuelinks", "cashkaro", "cj"],
+            "SUM of INTERNAL CLICKS": [1000, 2500, 0],
+        })
+        aff_df = pd.DataFrame({
+            "Campaign": ["BrandA", "BrandB"],
+            "Commission": [500.0, 1250.0],
+            "Transactions": [25, 50],
+        })
+        res = self.engine.run_pipeline(
+            clicks_df,
+            [{"filename": "cuelinks_export.csv", "network_name": "cuelinks", "df": aff_df}],
+        )
+        master = res["master_df"]
+        summary = res["summary"]
+
+        # 1. Exact Column order
+        expected_cols = [
+            "WEBSITE / BRAND",
+            "AFFILIATE NETWORK",
+            "SUM of INTERNAL CLICKS",
+            "Revenue",
+            "Conversion Ratio",
+            "RPCs",
+        ]
+        self.assertEqual(list(master.columns), expected_cols)
+
+        # 2. Conversion Ratio calculation:
+        # BrandA: 25 txs / 1000 clicks = 2.50%
+        row_a = master[master["WEBSITE / BRAND"] == "BrandA"].iloc[0]
+        self.assertEqual(row_a["Conversion Ratio"], 2.50)
+        self.assertEqual(row_a["RPCs"], 0.50)
+
+        # BrandC: 0 clicks -> 0.0%
+        row_c = master[master["WEBSITE / BRAND"] == "BrandC"].iloc[0]
+        self.assertEqual(row_c["Conversion Ratio"], 0.0)
+        self.assertEqual(row_c["RPCs"], 0.0)
+
+        # 3. Summary metrics
+        self.assertIn("total_transactions", summary)
+        self.assertIn("overall_conversion_ratio", summary)
+        self.assertEqual(summary["total_transactions"], 75)
 
 
 if __name__ == "__main__":

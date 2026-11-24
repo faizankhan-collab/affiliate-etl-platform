@@ -94,7 +94,18 @@ class InrdealsAdapter(BaseNetworkAdapter):
             invalid_mask = status_series.isin(["declined", "cancelled", "canceled", "rejected", "failed"])
             working = working[~invalid_mask]
 
-        # 5. Standardize brands & aggregate
+        # 5. Detect Transactions / Conversions column
+        conv_col = find_column(
+            working,
+            candidates=["transactions", "total transactions", "conversions", "orders", "sales", "actions"],
+            exclude_keywords=["amount", "commission", "payout", "clicks", "rate", "cr", "id"],
+        )
+        if conv_col and conv_col in working.columns:
+            clean_conv = clean_currency_series(working[conv_col]).fillna(0).astype(int)
+        else:
+            clean_conv = pd.Series(1 if status_col else 0, index=working.index)
+
+        # 6. Standardize brands & aggregate
         results = []
         for _, row in working.iterrows():
             raw_b = str(row[brand_col]).strip() if pd.notna(row[brand_col]) else ""
@@ -110,6 +121,7 @@ class InrdealsAdapter(BaseNetworkAdapter):
                     "brand": std_b,
                     "network": self.network_name,
                     "revenue": float(row["_clean_rev"]),
+                    "transactions": int(clean_conv.loc[row.name]) if row.name in clean_conv else 0,
                     "original_brand": raw_b,
                     "is_matched": is_matched,
                 }
@@ -118,13 +130,14 @@ class InrdealsAdapter(BaseNetworkAdapter):
         res_df = pd.DataFrame(results)
         if res_df.empty:
             return pd.DataFrame(
-                columns=["brand", "network", "revenue", "original_brand", "is_matched"]
+                columns=["brand", "network", "revenue", "transactions", "original_brand", "is_matched"]
             )
 
         return (
             res_df.groupby(["brand", "network"], as_index=False)
             .agg(
                 revenue=("revenue", "sum"),
+                transactions=("transactions", "sum"),
                 original_brand=("original_brand", lambda x: ", ".join(sorted(set(x)))),
                 is_matched=("is_matched", "all"),
             )
