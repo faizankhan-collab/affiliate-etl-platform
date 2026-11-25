@@ -279,6 +279,8 @@ async def get_latest_master_data(
             ("inrdeals", "inrdeals_bot_live.csv"),
             ("cj", "cj_bot_live.csv"),
             ("pantech", "pantech_bot_live.csv"),
+            ("airindia", "airindia_bot_live.csv"),
+            ("ajio", "ajio_bot_live.csv"),
         ]
         affiliate_payload = []
         for net, default_filename in networks:
@@ -428,6 +430,8 @@ async def process_demo_data(
             ("inrdeals_bot_live.csv", "inrdeals"),
             ("cj_bot_live.csv", "cj"),
             ("pantech_bot_live.csv", "pantech"),
+            ("airindia_bot_live.csv", "airindia"),
+            ("ajio_bot_live.csv", "ajio"),
         ]
 
         # Fallback to monthly export files if live bot files aren't present
@@ -440,6 +444,8 @@ async def process_demo_data(
             "inrdeals_bot_live.csv": "inrdeals_monthly_export.csv",
             "cj_bot_live.csv": "cj_monthly_export.csv",
             "pantech_bot_live.csv": "pantech_monthly_export.csv",
+            "airindia_bot_live.csv": "airindia_bot_live.csv",
+            "ajio_bot_live.csv": "ajio_bot_live.csv",
         }
 
         affiliate_payload = []
@@ -910,6 +916,114 @@ async def bot_sync_pantech(req: Optional[BotSyncRequest] = None):
         raise HTTPException(status_code=500, detail=f"Pantech bot error: {str(e)}")
 
 
+@app.post("/api/bot/sync-airindia")
+async def bot_sync_airindia(req: Optional[BotSyncRequest] = None):
+    """Trigger automated headless bot to scrape Air India Adobe Analytics Workspace report and return payload."""
+    try:
+        from .bots.airindia_bot import AirIndiaBot
+        s_date = req.start_date if req and req.start_date else "2026-10-01"
+        e_date = req.end_date if req and req.end_date else "2026-10-31"
+
+        print(f"📥 [BOT SYNC] Received Air India sync request for: {s_date} to {e_date}")
+
+        bot = AirIndiaBot()
+        file_bytes, filename, df = await bot.fetch_campaign_report(s_date, e_date)
+
+        csv_dest = os.path.join(SAMPLE_DIR, "airindia_bot_live.csv")
+        with open(csv_dest, "wb") as f:
+            f.write(file_bytes)
+        dl_dest = os.path.join(DOWNLOADS_DIR, filename)
+        with open(dl_dest, "wb") as f:
+            f.write(file_bytes)
+
+        return {
+            "success": True,
+            "filename": filename,
+            "network": "airindia",
+            "rows_count": len(df),
+            "columns": list(df.columns),
+            "message": f"Successfully auto-fetched Air India Direct report for {s_date} to {e_date} ({len(df)} days/campaigns, ₹150/order)",
+            "data": df.fillna("").to_dict(orient="records"),
+        }
+    except Exception as e:
+        print(f"Air India bot error notice: {e}. Trying cached sample...")
+        dest_path = os.path.join(SAMPLE_DIR, "airindia_bot_live.csv")
+        if os.path.exists(dest_path):
+            with open(dest_path, "rb") as f:
+                file_bytes = f.read()
+            filename = f"airindia_campaigns_{s_date}_to_{e_date}.csv"
+            try:
+                with open(os.path.join(DOWNLOADS_DIR, filename), "wb") as f_out:
+                    f_out.write(file_bytes)
+            except Exception:
+                pass
+            df = engine.parse_file_to_dataframe(file_bytes, filename)
+            return {
+                "success": True,
+                "filename": filename,
+                "network": "airindia",
+                "rows_count": len(df),
+                "columns": list(df.columns),
+                "message": f"Successfully loaded cached Air India report for {s_date} to {e_date} ({len(df)} days/campaigns)",
+                "data": df.fillna("").to_dict(orient="records"),
+            }
+        raise HTTPException(status_code=500, detail=f"Air India bot error: {str(e)}")
+
+
+@app.post("/api/bot/sync-ajio")
+async def bot_sync_ajio(req: Optional[BotSyncRequest] = None):
+    """Trigger automated bot to fetch Ajio Trackier API performance data and return payload."""
+    try:
+        from .bots.ajio_bot import AjioBot
+        s_date = req.start_date if req and req.start_date else "2026-10-01"
+        e_date = req.end_date if req and req.end_date else "2026-10-31"
+
+        print(f"📥 [BOT SYNC] Received Ajio sync request for: {s_date} to {e_date}")
+
+        bot = AjioBot()
+        file_bytes, filename, df = await bot.fetch_campaign_report(s_date, e_date)
+
+        csv_dest = os.path.join(SAMPLE_DIR, "ajio_bot_live.csv")
+        with open(csv_dest, "wb") as f:
+            f.write(file_bytes)
+        dl_dest = os.path.join(DOWNLOADS_DIR, filename)
+        with open(dl_dest, "wb") as f:
+            f.write(file_bytes)
+
+        return {
+            "success": True,
+            "filename": filename,
+            "network": "ajio",
+            "rows_count": len(df),
+            "columns": list(df.columns),
+            "message": f"Successfully auto-fetched Ajio Direct Trackier report for {s_date} to {e_date} ({len(df)} days/campaigns, Rs {df['Payout'].sum():.2f} payout)",
+            "data": df.fillna("").to_dict(orient="records"),
+        }
+    except Exception as e:
+        print(f"Ajio bot error notice: {e}. Trying cached sample...")
+        dest_path = os.path.join(SAMPLE_DIR, "ajio_bot_live.csv")
+        if os.path.exists(dest_path):
+            with open(dest_path, "rb") as f:
+                file_bytes = f.read()
+            filename = f"ajio_campaigns_{s_date}_to_{e_date}.csv"
+            try:
+                with open(os.path.join(DOWNLOADS_DIR, filename), "wb") as f_out:
+                    f_out.write(file_bytes)
+            except Exception:
+                pass
+            df = engine.parse_file_to_dataframe(file_bytes, filename)
+            return {
+                "success": True,
+                "filename": filename,
+                "network": "ajio",
+                "rows_count": len(df),
+                "columns": list(df.columns),
+                "message": f"Successfully loaded cached Ajio report for {s_date} to {e_date} ({len(df)} days/campaigns)",
+                "data": df.fillna("").to_dict(orient="records"),
+            }
+        raise HTTPException(status_code=500, detail=f"Ajio bot error: {str(e)}")
+
+
 @app.get("/api/aliases", response_model=AliasResponse)
 async def get_aliases():
     return {
@@ -1170,6 +1284,8 @@ async def auto_sync_network_day(target_date: str) -> Dict[str, Any]:
     from .bots.icubeswire_bot import IcubeswireBot
     from .bots.cj_bot import CJBot
     from .bots.pantech_bot import PantechBot
+    from .bots.airindia_bot import AirIndiaBot
+    from .bots.ajio_bot import AjioBot
 
     async def _safe_run(coro, name):
         try:
@@ -1186,6 +1302,8 @@ async def auto_sync_network_day(target_date: str) -> Dict[str, Any]:
         _safe_run(IcubeswireBot().fetch_campaign_report(target_date, target_date), "icubeswire"),
         _safe_run(CJBot().fetch_campaign_report(target_date, target_date), "cj"),
         _safe_run(PantechBot().fetch_campaign_report(target_date, target_date), "pantech"),
+        _safe_run(AirIndiaBot().fetch_campaign_report(target_date, target_date), "airindia"),
+        _safe_run(AjioBot().fetch_campaign_report(target_date, target_date), "ajio"),
     ]
     await asyncio.gather(*tasks)
     return buyhatke_clicks.harvest_live_day(target_date)
@@ -1212,7 +1330,7 @@ async def auto_ingest_all_live_data(lag_days: int = 6) -> Dict[str, Any]:
     downloads_path = Path(DOWNLOADS_DIR)
     for d in recent_dates:
         has_files = False
-        for net in ["zonet", "cuelinks", "admitad", "cj", "icubeswire", "cashkaro", "pantech"]:
+        for net in ["zonet", "cuelinks", "admitad", "cj", "icubeswire", "cashkaro", "pantech", "airindia", "ajio"]:
             exact = list(downloads_path.glob(f"{net}*{d}_to_{d}*")) + list(downloads_path.glob(f"{net}*{d}_{d}*"))
             if exact:
                 has_files = True

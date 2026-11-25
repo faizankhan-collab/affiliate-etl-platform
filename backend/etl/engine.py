@@ -885,6 +885,9 @@ class ETLEngine:
                     "cuelinks",
                     "zonet",
                     "admitad",
+                    "airindia",
+                    "ajio",
+                    "special (own)",
                 ]
 
                 # Check if scaling should be applied:

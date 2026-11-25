@@ -312,7 +312,7 @@ class BuyhatkeClicksService:
     ) -> Tuple[Optional[float], Dict[str, float], List[str]]:
         """
         Directly parse and sum exact single-day network payouts for target_date
-        across all 8 affiliate networks (zonet, cuelinks, admitad, cj, icubeswire, cashkaro, pantech, inrdeals).
+        across all affiliate networks (zonet, cuelinks, admitad, cj, icubeswire, cashkaro, pantech, inrdeals, airindia).
         Scans both downloads/ and backend/sample_data/.
         Uses standard adapters to properly process currency, USD-to-INR conversions, and pending commissions.
         Completely autonomous - requires ZERO manual reconciliation reports or estimation.

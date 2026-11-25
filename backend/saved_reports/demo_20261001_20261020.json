@@ -4,38 +4,40 @@
   "start_date": "2026-10-01",
   "end_date": "2026-10-20",
   "days_count": 20,
-  "created_at": "2026-11-05T17:38:55.936666",
+  "created_at": "2026-11-24T16:51:21.788946",
   "usd_to_inr_rate": 94.74,
   "summary": {
-    "total_revenue": 4385851.42,
+    "total_revenue": 1870550.7,
     "total_internal_clicks": 13046370,
-    "overall_portfolio_rpc": 0.3362,
-    "total_master_rows": 144,
-    "matched_revenue_rows": 52,
+    "overall_portfolio_rpc": 0.1434,
+    "total_transactions": 20650,
+    "overall_conversion_ratio": 0.16,
+    "total_master_rows": 146,
+    "matched_revenue_rows": 50,
     "orphaned_affiliate_records": [],
     "network_processing_logs": [
       {
         "filename": "cuelinks_bot_live.xls",
         "detected_network": "cuelinks",
         "status": "success",
-        "records_count": 28,
-        "total_revenue": 198463.95,
+        "records_count": 30,
+        "total_revenue": 49733.4,
         "is_date_scaled": false
       },
       {
         "filename": "admitad_bot_live.xlsx",
         "detected_network": "admitad",
         "status": "success",
-        "records_count": 22,
-        "total_revenue": 367125.69,
+        "records_count": 20,
+        "total_revenue": 101450.79,
         "is_date_scaled": false
       },
       {
         "filename": "cashkaro_bot_live.csv",
         "detected_network": "cashkaro",
         "status": "success",
-        "records_count": 23,
-        "total_revenue": 8834.51,
+        "records_count": 20,
+        "total_revenue": 3653.99,
         "is_date_scaled": false
       },
       {
@@ -43,7 +45,7 @@
         "detected_network": "zonet",
         "status": "success",
         "records_count": 4,
-        "total_revenue": 3074074.4,
+        "total_revenue": 987889.56,
         "is_date_scaled": false
       },
       {
@@ -51,7 +53,7 @@
         "detected_network": "icubeswire",
         "status": "success",
         "records_count": 5,
-        "total_revenue": 36102.63,
+        "total_revenue": 23794.95,
         "is_date_scaled": false
       },
       {
@@ -67,7 +69,7 @@
         "detected_network": "cj",
         "status": "success",
         "records_count": 2,
-        "total_revenue": 579838.87,
+        "total_revenue": 582616.64,
         "is_date_scaled": false
       },
       {
@@ -102,20 +104,23 @@
       "AFFILIATE NETWORK": "Pantech",
       "SUM of INTERNAL CLICKS": 2557061,
       "Revenue": 38914.31,
+      "Conversion Ratio": 0.04,
       "RPCs": 0.02
     },
     {
       "WEBSITE / BRAND": "Flipkart",
       "AFFILIATE NETWORK": "zonet",
       "SUM of INTERNAL CLICKS": 2373399,
-      "Revenue": 1743097.32,
-      "RPCs": 0.73
+      "Revenue": 42.12,
+      "Conversion Ratio": 0.0002,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Flipkart",
       "AFFILIATE NETWORK": "adgama",
       "SUM of INTERNAL CLICKS": 653474,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -123,34 +128,39 @@
       "AFFILIATE NETWORK": "EarnPe",
       "SUM of INTERNAL CLICKS": 506909,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Flipkart",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 471507,
-      "Revenue": 145173.2,
-      "RPCs": 0.31
+      "Revenue": 398.65,
+      "Conversion Ratio": 0.0008,
+      "RPCs": 0.0008
     },
     {
       "WEBSITE / BRAND": "Flipkart",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 0,
-      "Revenue": 3179.7,
+      "Revenue": 107.1,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Amazon",
       "AFFILIATE NETWORK": "zonet",
       "SUM of INTERNAL CLICKS": 2431374,
-      "Revenue": 1220367.7,
-      "RPCs": 0.5
+      "Revenue": 788617.69,
+      "Conversion Ratio": 0.04,
+      "RPCs": 0.32
     },
     {
       "WEBSITE / BRAND": "Amazon",
       "AFFILIATE NETWORK": "Special (Extra1)",
       "SUM of INTERNAL CLICKS": 163154,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -158,6 +168,7 @@
       "AFFILIATE NETWORK": "Pantech",
       "SUM of INTERNAL CLICKS": 158631,
       "Revenue": 23601.54,
+      "Conversion Ratio": 0.3,
       "RPCs": 0.15
     },
     {
@@ -165,34 +176,39 @@
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 108777,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Myntra",
       "AFFILIATE NETWORK": "cj",
       "SUM of INTERNAL CLICKS": 587015,
-      "Revenue": 579838.87,
+      "Revenue": 582616.64,
+      "Conversion Ratio": 2.24,
       "RPCs": 0.99
     },
     {
       "WEBSITE / BRAND": "Myntra",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 504371,
-      "Revenue": 200710.46,
-      "RPCs": 0.4
+      "Revenue": 8934.77,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.02
     },
     {
       "WEBSITE / BRAND": "Myntra",
       "AFFILIATE NETWORK": "zonet",
       "SUM of INTERNAL CLICKS": 128594,
-      "Revenue": 110609.38,
-      "RPCs": 0.86
+      "Revenue": 199229.75,
+      "Conversion Ratio": 2.95,
+      "RPCs": 1.55
     },
     {
       "WEBSITE / BRAND": "Myntra",
       "AFFILIATE NETWORK": "affinity",
       "SUM of INTERNAL CLICKS": 96905,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -200,20 +216,23 @@
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 52443,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Myntra",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 30517,
-      "Revenue": 89.1,
-      "RPCs": 0.0029
+      "Revenue": 103.05,
+      "Conversion Ratio": 0.0098,
+      "RPCs": 0.0034
     },
     {
       "WEBSITE / BRAND": "Reliance Digital",
       "AFFILIATE NETWORK": "affinity",
       "SUM of INTERNAL CLICKS": 366635,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -221,6 +240,7 @@
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 204413,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -228,83 +248,95 @@
       "AFFILIATE NETWORK": "Pantech",
       "SUM of INTERNAL CLICKS": 96949,
       "Revenue": 46449.9,
+      "Conversion Ratio": 0.24,
       "RPCs": 0.48
     },
     {
       "WEBSITE / BRAND": "TatacliQ",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 290160,
-      "Revenue": 60040.63,
-      "RPCs": 0.21
+      "Revenue": 32195.53,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.11
     },
     {
       "WEBSITE / BRAND": "Vijay Sales",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 281169,
-      "Revenue": 9168.84,
-      "RPCs": 0.03
+      "Revenue": 1182.91,
+      "Conversion Ratio": 0.0021,
+      "RPCs": 0.0042
     },
     {
       "WEBSITE / BRAND": "Croma",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 193563,
-      "Revenue": 8643.82,
-      "RPCs": 0.04
+      "Revenue": 3918.61,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.02
     },
     {
       "WEBSITE / BRAND": "NykaaFashion",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 144031,
-      "Revenue": 6411.9,
-      "RPCs": 0.04
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Ajio Lux",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 97111,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Nykaa",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 88034,
-      "Revenue": 13061.59,
-      "RPCs": 0.15
+      "Revenue": 8804.31,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.1
     },
     {
       "WEBSITE / BRAND": "Samsung",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 61519,
-      "Revenue": 721.6,
+      "Revenue": 712.6,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.01
     },
     {
       "WEBSITE / BRAND": "firstcry",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 59415,
-      "Revenue": 12257.0,
-      "RPCs": 0.21
+      "Revenue": 13897.5,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.23
     },
     {
       "WEBSITE / BRAND": "firstcry",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 0,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Shopsy",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 31125,
-      "Revenue": 7391.81,
-      "RPCs": 0.24
+      "Revenue": 4073.73,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.13
     },
     {
       "WEBSITE / BRAND": "Shopsy",
       "AFFILIATE NETWORK": "digimodo",
       "SUM of INTERNAL CLICKS": 16499,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -312,6 +344,7 @@
       "AFFILIATE NETWORK": "affinity",
       "SUM of INTERNAL CLICKS": 10996,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -319,27 +352,31 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 31278,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Puma",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 20021,
-      "Revenue": 3496.31,
-      "RPCs": 0.17
+      "Revenue": 1729.32,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.09
     },
     {
       "WEBSITE / BRAND": "lenovo",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 16350,
-      "Revenue": 46215.11,
-      "RPCs": 2.83
+      "Revenue": 22235.06,
+      "Conversion Ratio": 0.0,
+      "RPCs": 1.36
     },
     {
       "WEBSITE / BRAND": "Makemytrip",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 14477,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -347,6 +384,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 12216,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -354,6 +392,7 @@
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 11848,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -361,20 +400,23 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 11582,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Decathlon",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 9253,
-      "Revenue": 2711.24,
-      "RPCs": 0.29
+      "Revenue": 3181.34,
+      "Conversion Ratio": 1.23,
+      "RPCs": 0.34
     },
     {
       "WEBSITE / BRAND": "PepperFry",
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 9240,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -382,20 +424,23 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 8186,
       "Revenue": 10687.27,
+      "Conversion Ratio": 1.34,
       "RPCs": 1.31
     },
     {
       "WEBSITE / BRAND": "asus",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 7820,
-      "Revenue": 2777.37,
-      "RPCs": 0.36
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "acer",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 7799,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -403,6 +448,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 0,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -410,34 +456,39 @@
       "AFFILIATE NETWORK": "affinity",
       "SUM of INTERNAL CLICKS": 7458,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "ShopClues",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 6817,
-      "Revenue": 11.12,
-      "RPCs": 0.0016
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.01,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Campus Shoes",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 5575,
-      "Revenue": 9853.65,
-      "RPCs": 1.77
+      "Revenue": 12548.62,
+      "Conversion Ratio": 1.29,
+      "RPCs": 2.25
     },
     {
       "WEBSITE / BRAND": "Boat Lifestyle",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 5131,
-      "Revenue": 14054.25,
-      "RPCs": 2.74
+      "Revenue": 6404.74,
+      "Conversion Ratio": 1.25,
+      "RPCs": 1.25
     },
     {
       "WEBSITE / BRAND": "cashify",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 4566,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -445,27 +496,31 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 4447,
       "Revenue": 0.0,
+      "Conversion Ratio": 3.33,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Snitch",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 4386,
-      "Revenue": 314.65,
-      "RPCs": 0.07
+      "Revenue": 477.34,
+      "Conversion Ratio": 0.14,
+      "RPCs": 0.11
     },
     {
       "WEBSITE / BRAND": "AirIndia",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 3409,
-      "Revenue": 43440.0,
-      "RPCs": 12.74
+      "Revenue": 8520.0,
+      "Conversion Ratio": 1.47,
+      "RPCs": 2.5
     },
     {
       "WEBSITE / BRAND": "AirIndia",
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 458,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -473,6 +528,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 3837,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -480,41 +536,47 @@
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 3639,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "kindlife",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 3458,
-      "Revenue": 334.66,
-      "RPCs": 0.1
+      "Revenue": 667.87,
+      "Conversion Ratio": 0.09,
+      "RPCs": 0.19
     },
     {
       "WEBSITE / BRAND": "Goibibo",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 3437,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Bewakoof",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 3328,
-      "Revenue": 88.0,
-      "RPCs": 0.03
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Healthkart",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 3160,
-      "Revenue": 284.33,
-      "RPCs": 0.09
+      "Revenue": 613.51,
+      "Conversion Ratio": 0.25,
+      "RPCs": 0.19
     },
     {
       "WEBSITE / BRAND": "Amazon US",
       "AFFILIATE NETWORK": "zonet",
       "SUM of INTERNAL CLICKS": 3127,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -522,34 +584,39 @@
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 2991,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Crocs",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 2978,
-      "Revenue": 366.76,
-      "RPCs": 0.12
+      "Revenue": 3171.7,
+      "Conversion Ratio": 0.47,
+      "RPCs": 1.07
     },
     {
       "WEBSITE / BRAND": "MuscleBlaze",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 2801,
-      "Revenue": 3466.24,
-      "RPCs": 1.24
+      "Revenue": 1564.72,
+      "Conversion Ratio": 0.5,
+      "RPCs": 0.56
     },
     {
       "WEBSITE / BRAND": "Levis India",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 2580,
-      "Revenue": 1316.82,
-      "RPCs": 0.51
+      "Revenue": 5433.64,
+      "Conversion Ratio": 1.28,
+      "RPCs": 2.11
     },
     {
       "WEBSITE / BRAND": "UrbanLadder",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 2569,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -557,6 +624,7 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 2435,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -564,6 +632,7 @@
       "AFFILIATE NETWORK": "Yieldkit",
       "SUM of INTERNAL CLICKS": 2359,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -571,6 +640,7 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 2194,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -578,34 +648,39 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 2134,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Jockey India",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1911,
-      "Revenue": 473.46,
-      "RPCs": 0.25
+      "Revenue": 129.38,
+      "Conversion Ratio": 0.05,
+      "RPCs": 0.07
     },
     {
       "WEBSITE / BRAND": "Libas",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 1883,
-      "Revenue": 2215.4,
-      "RPCs": 1.18
+      "Revenue": 1288.9,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.68
     },
     {
       "WEBSITE / BRAND": "The Bear House",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1782,
-      "Revenue": 0.0,
-      "RPCs": 0.0
+      "Revenue": 175.44,
+      "Conversion Ratio": 0.06,
+      "RPCs": 0.1
     },
     {
       "WEBSITE / BRAND": "Fastrack",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1729,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -613,55 +688,63 @@
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 1643,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Timex",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1488,
-      "Revenue": 608.98,
-      "RPCs": 0.41
+      "Revenue": 1873.28,
+      "Conversion Ratio": 0.34,
+      "RPCs": 1.26
     },
     {
       "WEBSITE / BRAND": "Milton",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1322,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Tanishq",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 1259,
-      "Revenue": 642.96,
-      "RPCs": 0.51
+      "Revenue": 9482.24,
+      "Conversion Ratio": 1.03,
+      "RPCs": 7.53
     },
     {
       "WEBSITE / BRAND": "Dot and Key",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 1162,
-      "Revenue": 0.0,
-      "RPCs": 0.0
+      "Revenue": 651.06,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.56
     },
     {
       "WEBSITE / BRAND": "Dell",
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 1049,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Moglix",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 951,
-      "Revenue": 226.26,
-      "RPCs": 0.24
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "LifeLong India",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 935,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -669,6 +752,7 @@
       "AFFILIATE NETWORK": "Analytics Cloud",
       "SUM of INTERNAL CLICKS": 934,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -676,34 +760,39 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 927,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Cleartrip",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 917,
-      "Revenue": 162.18,
-      "RPCs": 0.18
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Neemans",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 792,
-      "Revenue": 0.0,
-      "RPCs": 0.0
+      "Revenue": 718.78,
+      "Conversion Ratio": 0.38,
+      "RPCs": 0.91
     },
     {
       "WEBSITE / BRAND": "Aliexpress",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 789,
-      "Revenue": 10.5,
-      "RPCs": 0.01
+      "Revenue": 699.09,
+      "Conversion Ratio": 1.01,
+      "RPCs": 0.89
     },
     {
       "WEBSITE / BRAND": "AirIndia Express",
       "AFFILIATE NETWORK": "Special (OWN)",
       "SUM of INTERNAL CLICKS": 676,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -711,20 +800,23 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 99,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Dailyobjects",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 710,
-      "Revenue": 640.0,
-      "RPCs": 0.9
+      "Revenue": 240.0,
+      "Conversion Ratio": 0.14,
+      "RPCs": 0.34
     },
     {
       "WEBSITE / BRAND": "zebronics",
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 637,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -732,41 +824,47 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 610,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "HyugaLife",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 596,
-      "Revenue": 906.34,
-      "RPCs": 1.52
+      "Revenue": 306.83,
+      "Conversion Ratio": 0.5,
+      "RPCs": 0.51
     },
     {
       "WEBSITE / BRAND": "Realme",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 595,
-      "Revenue": 5856.18,
-      "RPCs": 9.84
+      "Revenue": 3009.4,
+      "Conversion Ratio": 0.0,
+      "RPCs": 5.06
     },
     {
       "WEBSITE / BRAND": "Clovia",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 542,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Plum Goodness",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 400,
-      "Revenue": 499.48,
-      "RPCs": 1.25
+      "Revenue": 505.34,
+      "Conversion Ratio": 1.0,
+      "RPCs": 1.26
     },
     {
       "WEBSITE / BRAND": "Expedia",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 276,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -774,6 +872,7 @@
       "AFFILIATE NETWORK": "optimisemedia - omgt5, omgt3",
       "SUM of INTERNAL CLICKS": 29,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -781,6 +880,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 295,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -788,6 +888,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 279,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -795,6 +896,7 @@
       "AFFILIATE NETWORK": "cj",
       "SUM of INTERNAL CLICKS": 269,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -802,6 +904,7 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 227,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -809,6 +912,7 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 222,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -816,6 +920,7 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 213,
       "Revenue": 1718.56,
+      "Conversion Ratio": 1.41,
       "RPCs": 8.07
     },
     {
@@ -823,6 +928,7 @@
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 209,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -830,20 +936,23 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 209,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "macys",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 203,
-      "Revenue": 2089.66,
-      "RPCs": 10.29
+      "Revenue": 11157.2,
+      "Conversion Ratio": 2.46,
+      "RPCs": 54.96
     },
     {
       "WEBSITE / BRAND": "tripadvisor",
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 202,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -851,20 +960,23 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 198,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Palmonas",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 183,
-      "Revenue": 503.84,
-      "RPCs": 2.75
+      "Revenue": 512.88,
+      "Conversion Ratio": 2.19,
+      "RPCs": 2.8
     },
     {
       "WEBSITE / BRAND": "sochstore",
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 138,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -872,6 +984,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 134,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -879,20 +992,23 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 130,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Kapiva",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 125,
-      "Revenue": 0.0,
-      "RPCs": 0.0
+      "Revenue": 1352.16,
+      "Conversion Ratio": 4.0,
+      "RPCs": 10.82
     },
     {
       "WEBSITE / BRAND": "Blackberrys",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 116,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -900,6 +1016,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 115,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -907,20 +1024,23 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 112,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "mcaffeine",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 106,
-      "Revenue": 95.5,
-      "RPCs": 0.9
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Chewy",
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 91,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -928,6 +1048,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 89,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -935,6 +1056,7 @@
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 68,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -942,6 +1064,7 @@
       "AFFILIATE NETWORK": "Analytics Cloud",
       "SUM of INTERNAL CLICKS": 67,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -949,6 +1072,7 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 67,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -956,6 +1080,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 59,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -963,6 +1088,7 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 54,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -970,6 +1096,7 @@
       "AFFILIATE NETWORK": "affinity",
       "SUM of INTERNAL CLICKS": 54,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -977,20 +1104,23 @@
       "AFFILIATE NETWORK": "cuelinks",
       "SUM of INTERNAL CLICKS": 47,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "uniqlo",
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 41,
-      "Revenue": 15.88,
-      "RPCs": 0.39
+      "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
     },
     {
       "WEBSITE / BRAND": "Jivisa",
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 35,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -998,6 +1128,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 34,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1005,6 +1136,7 @@
       "AFFILIATE NETWORK": "extrape",
       "SUM of INTERNAL CLICKS": 29,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1012,6 +1144,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 27,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1019,6 +1152,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 25,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1026,6 +1160,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 25,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1033,6 +1168,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 24,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1040,6 +1176,7 @@
       "AFFILIATE NETWORK": "INR Deals",
       "SUM of INTERNAL CLICKS": 22,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1047,6 +1184,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 21,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1054,6 +1192,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 21,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1061,6 +1200,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 19,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1068,6 +1208,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 16,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1075,6 +1216,7 @@
       "AFFILIATE NETWORK": "icubeswire",
       "SUM of INTERNAL CLICKS": 10,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1082,6 +1224,7 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 3,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1089,6 +1232,7 @@
       "AFFILIATE NETWORK": "admitad",
       "SUM of INTERNAL CLICKS": 0,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1096,6 +1240,15 @@
       "AFFILIATE NETWORK": "cashkaro",
       "SUM of INTERNAL CLICKS": 0,
       "Revenue": 0.0,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
+    },
+    {
+      "WEBSITE / BRAND": "Shopsy",
+      "AFFILIATE NETWORK": "cuelinks",
+      "SUM of INTERNAL CLICKS": 0,
+      "Revenue": 4652.6,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     },
     {
@@ -1103,6 +1256,15 @@
       "AFFILIATE NETWORK": "Pantech",
       "SUM of INTERNAL CLICKS": 0,
       "Revenue": 39.79,
+      "Conversion Ratio": 0.0,
+      "RPCs": 0.0
+    },
+    {
+      "WEBSITE / BRAND": "gonoise",
+      "AFFILIATE NETWORK": "cuelinks",
+      "SUM of INTERNAL CLICKS": 0,
+      "Revenue": 1001.93,
+      "Conversion Ratio": 0.0,
       "RPCs": 0.0
     }
   ]

@@ -195,6 +195,8 @@ const SUPPORTED_NETWORKS = [
   { id: "adgama", label: "Adgama" },
   { id: "affinity", label: "Affinity" },
   { id: "pantech", label: "Pantech" },
+  { id: "airindia", label: "Air India (Special OWN)" },
+  { id: "ajio", label: "Ajio Direct (Special OWN)" },
   { id: "digimodo", label: "Digimodo" },
   { id: "generic", label: "Generic / Other" },
 ];
@@ -811,6 +813,8 @@ function setupActionButtons() {
   const optBotInrdeals = document.getElementById("opt-bot-inrdeals");
   const optBotCj = document.getElementById("opt-bot-cj");
   const optBotPantech = document.getElementById("opt-bot-pantech");
+  const optBotAirindia = document.getElementById("opt-bot-airindia");
+  const optBotAjio = document.getElementById("opt-bot-ajio");
   const optBotFast6 = document.getElementById("opt-bot-fast-6");
   const optBotAll = document.getElementById("opt-bot-all");
   const dateRangePreset = document.getElementById("date-range-preset");
@@ -880,6 +884,8 @@ function setupActionButtons() {
       inrdeals: "INRDeals",
       cj: "CJ (Commission Junction)",
       pantech: "Pantech",
+      airindia: "Air India Direct (Special OWN)",
+      ajio: "Ajio Direct (Special OWN)",
     }[networkKey] || networkKey;
 
     console.log(`[${networkDisplay} Bot] Syncing ${label} (${start_date} to ${end_date}, ${days} days)`);
@@ -948,6 +954,8 @@ function setupActionButtons() {
       zonet: { url: "/api/bot/sync-zonet", defaultExt: "csv", mime: "text/csv", defaultFile: "zonet_bot_live.csv", label: "Zonet" },
       icubeswire: { url: "/api/bot/sync-icubeswire", defaultExt: "csv", mime: "text/csv", defaultFile: "icubeswire_bot_live.csv", label: "iCubesWire" },
       pantech: { url: "/api/bot/sync-pantech", defaultExt: "csv", mime: "text/csv", defaultFile: "pantech_bot_live.csv", label: "Pantech" },
+      airindia: { url: "/api/bot/sync-airindia", defaultExt: "csv", mime: "text/csv", defaultFile: "airindia_bot_live.csv", label: "Air India Direct (Special OWN)" },
+      ajio: { url: "/api/bot/sync-ajio", defaultExt: "csv", mime: "text/csv", defaultFile: "ajio_bot_live.csv", label: "Ajio Direct (Special OWN)" },
       cj: { url: "/api/bot/sync-cj", defaultExt: "csv", mime: "text/csv", defaultFile: "cj_bot_live.csv", label: "CJ (Commission Junction)" },
     };
 
@@ -1029,7 +1037,7 @@ function setupActionButtons() {
     const { start_date, end_date, label, days } = getSelectedDateRange();
     setLoading(true, `🤖 Syncing all 7 active networks in parallel for ${label} (Streaming CJ GraphQL ~15-30s)...`);
 
-    const allNetworks = ["cuelinks", "admitad", "cashkaro", "zonet", "icubeswire", "pantech", "cj"];
+    const allNetworks = ["cuelinks", "admitad", "cashkaro", "zonet", "icubeswire", "pantech", "airindia", "ajio", "cj"];
     try {
       const results = await Promise.allSettled(
         allNetworks.map((net) => fetchNetworkFile(net, start_date, end_date))
@@ -1078,6 +1086,12 @@ function setupActionButtons() {
   }
   if (optBotPantech) {
     optBotPantech.addEventListener("click", () => syncSingleBot("pantech"));
+  }
+  if (optBotAirindia) {
+    optBotAirindia.addEventListener("click", () => syncSingleBot("airindia"));
+  }
+  if (optBotAjio) {
+    optBotAjio.addEventListener("click", () => syncSingleBot("ajio"));
   }
   if (optBotFast6) {
     optBotFast6.addEventListener("click", syncFast6Bots);
@@ -2315,6 +2329,13 @@ function handleSuccessResults(response) {
   currentSummary = response.summary || {};
 
   saveAppState();
+
+  const secKpis = document.getElementById("section-kpis");
+  const secRes = document.getElementById("section-results");
+  const secLogs = document.getElementById("section-logs");
+  if (secKpis) secKpis.classList.remove("hidden");
+  if (secRes) secRes.classList.remove("hidden");
+  if (secLogs) secLogs.classList.remove("hidden");
 
   renderKPIs(currentSummary);
   applyTableFiltersAndSort();

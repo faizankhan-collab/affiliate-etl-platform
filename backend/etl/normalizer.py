@@ -362,6 +362,14 @@ DEFAULT_NETWORK_ALIASES: Dict[str, str] = {
     "special (extra1)": "Special (Extra1)",
     "special own": "Special (OWN)",
     "special extra1": "Special (Extra1)",
+    "airindia": "Special (OWN)",
+    "air india": "Special (OWN)",
+    "airindia direct": "Special (OWN)",
+    "air india direct": "Special (OWN)",
+    "ajio direct": "Special (OWN)",
+    "ajio (own)": "Special (OWN)",
+    "ajio own": "Special (OWN)",
+    "ajio special": "Special (OWN)",
 }
 
 

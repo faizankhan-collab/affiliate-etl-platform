@@ -13,6 +13,8 @@ from .icubeswire import IcubeswireAdapter
 from .inrdeals import InrdealsAdapter
 from .cj import CJAdapter
 from .pantech import PantechAdapter
+from .airindia import AirIndiaAdapter
+from .ajio import AjioAdapter
 from .generic import GenericAdapter
 from ..normalizer import BrandNormalizer
 
@@ -25,6 +27,9 @@ ADAPTER_MAP: Dict[str, Type[BaseNetworkAdapter]] = {
     "inrdeals": InrdealsAdapter,
     "cj": CJAdapter,
     "pantech": PantechAdapter,
+    "airindia": AirIndiaAdapter,
+    "ajio": AjioAdapter,
+    "special (own)": AirIndiaAdapter,
 }
 
 
@@ -55,6 +60,10 @@ def detect_network_from_filename_or_df(
         return "affinity"
     if "pantech" in fn_lower:
         return "pantech"
+    if "airindia" in fn_lower or "air_india" in fn_lower:
+        return "airindia"
+    if "ajio" in fn_lower:
+        return "ajio"
 
     # 2. DataFrame column signatures
     if df is not None:
@@ -123,6 +132,14 @@ def detect_network_from_filename_or_df(
             or ("advertiser" in cols_lower and any(r in cols_lower for r in ["payout", "revenue", "commission"]))
         ):
             return "zonet"
+
+        # Air India signature
+        if (
+            any("flight booking" in c for c in cols_lower)
+            or any("flight search" in c for c in cols_lower)
+            or ("orders" in cols_lower and "visits" in cols_lower and any("airindia" in c for c in cols_lower))
+        ):
+            return "airindia"
 
     return "generic"
 
