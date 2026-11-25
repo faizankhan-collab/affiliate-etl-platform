@@ -1396,4 +1396,110 @@ async def api_live_ingest_autonomous(
         raise HTTPException(status_code=500, detail=f"Autonomous live ingest error: {str(e)}")
 
 
+@app.get("/api/live/unmonetized-brands")
+async def api_get_unmonetized_brands(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    min_clicks: Optional[int] = 1,
+    filter: Optional[str] = "all",  # "all", "pure", "high_traffic"
+    refresh: Optional[bool] = False,
+):
+    """
+    Fetch all high-traffic brands with bypassed / unmonetized clicks.
+    Provides actionable insights on merchants generating clicks without affiliate tracking.
+    """
+    try:
+        report = buyhatke_clicks.get_unmonetized_brands_report(
+            start_date=start_date,
+            end_date=end_date,
+            min_clicks=min_clicks or 1,
+            force_refresh=bool(refresh),
+        )
+        # Apply filter if requested
+        brands = report.get("brands", [])
+        if filter == "pure":
+            brands = [b for b in brands if b.get("is_pure_unmonetized")]
+        elif filter == "high_traffic":
+            brands = [b for b in brands if b.get("bypassed_clicks", 0) >= 10000]
+
+        filtered_report = dict(report)
+        filtered_report["brands"] = brands
+        filtered_report["filtered_count"] = len(brands)
+        filtered_report["filter"] = filter
+        return filtered_report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unmonetized brands report error: {str(e)}")
+
+
+@app.get("/api/live/unmonetized-brands/export")
+async def api_export_unmonetized_brands(
+    format: Optional[str] = "csv",  # "csv" or "excel"
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    min_clicks: Optional[int] = 1,
+    filter: Optional[str] = "all",
+):
+    """
+    Export the Unmonetized Brands Report as a structured CSV or Excel (.xlsx) file.
+    Includes sorting and filtering options.
+    """
+    import io
+    try:
+        report = buyhatke_clicks.get_unmonetized_brands_report(
+            start_date=start_date,
+            end_date=end_date,
+            min_clicks=min_clicks or 1,
+        )
+        brands = report.get("brands", [])
+        if filter == "pure":
+            brands = [b for b in brands if b.get("is_pure_unmonetized")]
+        elif filter == "high_traffic":
+            brands = [b for b in brands if b.get("bypassed_clicks", 0) >= 10000]
+
+        # Format rows for export
+        rows = []
+        for i, b in enumerate(brands):
+            nets = ", ".join(b.get("monetized_networks", [])) if b.get("monetized_networks") else "None (Zero Network)"
+            rows.append({
+                "Rank": i + 1,
+                "Website / Brand": b.get("brand"),
+                "Position ID": b.get("position"),
+                "Bypassed Clicks": b.get("bypassed_clicks"),
+                "Total Internal Clicks": b.get("total_clicks"),
+                "Bypassed Traffic Share (%)": b.get("bypassed_share_pct"),
+                "Monetization Status": b.get("status"),
+                "Active Affiliate Networks": nets,
+                "Est. Potential Revenue (INR)": b.get("est_revenue"),
+            })
+
+        export_df = pd.DataFrame(rows)
+        start_label = report.get("start_date", "start")
+        end_label = report.get("end_date", "end")
+
+        if format and format.lower() in ["excel", "xlsx"]:
+            filename = f"unmonetized_brands_report_{start_label}_to_{end_label}.xlsx"
+            excel_buf = io.BytesIO()
+            with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer:
+                export_df.to_excel(writer, index=False, sheet_name="Unmonetized Brands")
+            excel_bytes = excel_buf.getvalue()
+            headers = {
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+            return Response(
+                content=excel_bytes,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers=headers,
+            )
+        else:
+            filename = f"unmonetized_brands_report_{start_label}_to_{end_label}.csv"
+            csv_str = export_df.to_csv(index=False)
+            headers = {
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+            return Response(content=csv_str, media_type="text/csv", headers=headers)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to export unmonetized brands: {str(e)}")
+
+
 

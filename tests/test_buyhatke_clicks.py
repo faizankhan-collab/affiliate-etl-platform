@@ -228,6 +228,48 @@ class TestBuyhatkeClicksService(unittest.TestCase):
             if dummy_file.exists():
                 dummy_file.unlink()
 
+    def test_get_unmonetized_brands_report(self):
+        rep = self.service.get_unmonetized_brands_report()
+        self.assertTrue(rep["success"])
+        self.assertIn("summary", rep)
+        self.assertGreater(rep["summary"]["total_brands"], 0)
+        self.assertGreater(rep["summary"]["pure_unmonetized_count"], 0)
+        self.assertGreater(rep["summary"]["total_bypassed_clicks"], 0)
+        self.assertGreater(rep["summary"]["total_est_revenue"], 0)
+        self.assertIn("brands", rep)
+        self.assertGreater(len(rep["brands"]), 0)
+        
+        # Verify first brand structure
+        b0 = rep["brands"][0]
+        self.assertIn("brand", b0)
+        self.assertIn("bypassed_clicks", b0)
+        self.assertIn("status", b0)
+        self.assertIn("est_revenue", b0)
+
+    def test_api_unmonetized_brands_endpoints(self):
+        import asyncio
+        from backend.app import api_get_unmonetized_brands, api_export_unmonetized_brands
+
+        # JSON endpoint
+        res = asyncio.run(api_get_unmonetized_brands(filter="all"))
+        self.assertTrue(res["success"])
+        self.assertGreater(len(res["brands"]), 0)
+
+        # Pure filter
+        pure_res = asyncio.run(api_get_unmonetized_brands(filter="pure"))
+        self.assertTrue(all(b["is_pure_unmonetized"] for b in pure_res["brands"]))
+
+        # CSV export
+        csv_resp = asyncio.run(api_export_unmonetized_brands(format="csv"))
+        self.assertEqual(csv_resp.media_type, "text/csv")
+        self.assertIn("Rank", csv_resp.body.decode("utf-8"))
+        self.assertIn("Bypassed Clicks", csv_resp.body.decode("utf-8"))
+
+        # Excel export
+        excel_resp = asyncio.run(api_export_unmonetized_brands(format="excel"))
+        self.assertEqual(excel_resp.media_type, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        self.assertGreater(len(excel_resp.body), 1000)
+
 
 if __name__ == "__main__":
     unittest.main()

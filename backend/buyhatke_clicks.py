@@ -836,6 +836,204 @@ class BuyhatkeClicksService:
 
         return alerts, rolling_summary
 
+    def get_unmonetized_brands_report(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        min_clicks: int = 1,
+        benchmark_rpc: float = 0.1651,
+        force_refresh: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Generates a comprehensive audit of all brands generating internal click traffic
+        that are currently BYPASSED (i.e. zero affiliate network associated or untracked).
+        Identifies high-traffic unmonetized opportunities so affiliate partnerships can be established.
+        """
+        from datetime import datetime, timedelta
+
+        # 1. Determine date range (defaults to Nov 01 to Nov 19 or trailing window)
+        if not end_date or not start_date:
+            today = datetime.now().date()
+            end_dt = today - timedelta(days=6)
+            start_dt = end_dt.replace(day=1) if end_dt.day > 1 else (end_dt - timedelta(days=18))
+            start_str = start_dt.strftime("%Y-%m-%d")
+            end_str = end_dt.strftime("%Y-%m-%d")
+        else:
+            start_str = start_date
+            end_str = end_date
+            start_dt = datetime.strptime(start_str, "%Y-%m-%d").date()
+            end_dt = datetime.strptime(end_str, "%Y-%m-%d").date()
+
+        # 2. Retrieve brand-network click records from Buyhatke API or fallback cache
+        rows: List[Dict[str, Any]] = []
+        if not force_refresh:
+            # Check local raw fallback cache first for instant response
+            cache_file = BASE_DIR / "backend" / "sample_data" / "unmonetized_brands_raw.json"
+            if cache_file.exists():
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        rows = json.load(f)
+                except Exception as e:
+                    logger.warning(f"Error reading unmonetized_brands_raw.json: {e}")
+
+        if not rows or force_refresh:
+            try:
+                resp = self.fetch_raw_stats(
+                    from_date=start_str,
+                    upto_date=end_str,
+                    group_by="position,affiliate_network",
+                    order_by="internal_clicks",
+                    order="DESC",
+                    page_size=1000,
+                )
+                if resp.get("success"):
+                    rows = resp.get("data", {}).get("rows", [])
+                    if rows:
+                        # Save fresh raw cache
+                        cache_file = BASE_DIR / "backend" / "sample_data" / "unmonetized_brands_raw.json"
+                        try:
+                            with open(cache_file, "w", encoding="utf-8") as f:
+                                json.dump(rows, f, indent=2)
+                        except Exception:
+                            pass
+            except Exception as e:
+                logger.warning(f"Live stats query failed for unmonetized report: {e}")
+
+        # If still empty, check daily_internal_clicks_buyhatke.csv as safety fallback
+        if not rows:
+            daily_csv = BASE_DIR / "backend" / "sample_data" / "daily_internal_clicks_buyhatke.csv"
+            if daily_csv.exists():
+                try:
+                    df = pd.read_csv(daily_csv)
+                    for _, r in df.iterrows():
+                        rows.append({
+                            "position": r.get("POSITION"),
+                            "website_name": r.get("WEBSITE / BRAND"),
+                            "affiliate_network_name": "Bypassed",
+                            "affiliate_network_id": 0,
+                            "internal_clicks": int(r.get("INTERNAL CLICKS", 0) or 0),
+                        })
+                except Exception:
+                    pass
+
+        # 3. Aggregate by brand and position
+        brands_map: Dict[Tuple[str, Any], Dict[str, Any]] = {}
+        for r in rows:
+            pos = r.get("position")
+            raw_name = r.get("website_name")
+            if not raw_name or pos == -1000:
+                name = "Unknown Merchant" if pos == -1000 else f"Merchant #{pos}"
+            else:
+                name = str(raw_name).strip()
+
+            net_name = str(r.get("affiliate_network_name") or "Direct").strip()
+            net_id = r.get("affiliate_network_id")
+            clicks = int(r.get("internal_clicks", 0) or 0)
+
+            key = (name, pos)
+            if key not in brands_map:
+                brands_map[key] = {
+                    "brand": name,
+                    "position": pos,
+                    "total_clicks": 0,
+                    "bypassed_clicks": 0,
+                    "monetized_networks": set(),
+                }
+
+            brands_map[key]["total_clicks"] += clicks
+            is_bypassed = (
+                net_name.lower() in ["bypassed", "none", "untracked", "add utm tags", "direct"]
+                or net_id == 0
+                or net_id is None
+            )
+            if is_bypassed:
+                brands_map[key]["bypassed_clicks"] += clicks
+            else:
+                brands_map[key]["monetized_networks"].add(net_name)
+
+        # 4. Filter and structure result items
+        results: List[Dict[str, Any]] = []
+        for (name, pos), b in brands_map.items():
+            if b["bypassed_clicks"] < min_clicks:
+                continue
+
+            is_pure = (len(b["monetized_networks"]) == 0)
+            b_clicks = b["bypassed_clicks"]
+            t_clicks = b["total_clicks"]
+            share_pct = round((b_clicks / t_clicks) * 100, 1) if t_clicks > 0 else 100.0
+            est_rev = round(b_clicks * benchmark_rpc, 2)
+
+            # Sanitized search query for Universal Campaign Finder
+            clean_query = ""
+            if not name.startswith("Unknown") and not name.startswith("Merchant #"):
+                clean_query = name.replace(".com", "").replace(".in", "").strip()
+
+            results.append({
+                "brand": name,
+                "position": pos,
+                "bypassed_clicks": b_clicks,
+                "total_clicks": t_clicks,
+                "bypassed_share_pct": share_pct,
+                "is_pure_unmonetized": is_pure,
+                "status": "100% Unmonetized" if is_pure else "Partially Bypassed",
+                "monetized_networks": sorted(list(b["monetized_networks"])),
+                "est_revenue": est_rev,
+                "action_query": clean_query,
+            })
+
+        # Sort by bypassed_clicks DESC
+        results.sort(key=lambda x: x["bypassed_clicks"], reverse=True)
+        for i, item in enumerate(results):
+            item["rank"] = i + 1
+
+        # Summary statistics
+        total_bypassed_clicks = sum(item["bypassed_clicks"] for item in results)
+        total_clicks_all = sum(item["total_clicks"] for item in results)
+        total_est_revenue = round(sum(item["est_revenue"] for item in results), 2)
+        pure_unmonetized_count = sum(1 for item in results if item["is_pure_unmonetized"])
+
+        # Quick wins (top pure unmonetized with known brand names)
+        quick_wins = [
+            {
+                "brand": item["brand"],
+                "position": item["position"],
+                "clicks": item["bypassed_clicks"],
+                "est_revenue": item["est_revenue"],
+                "action_query": item["action_query"],
+            }
+            for item in results
+            if item["is_pure_unmonetized"] and item["action_query"]
+        ][:8]
+
+        report = {
+            "success": True,
+            "start_date": start_str,
+            "end_date": end_str,
+            "window_label": f"{start_dt.strftime('%b %d')} – {end_dt.strftime('%b %d, %Y')}",
+            "benchmark_rpc": benchmark_rpc,
+            "summary": {
+                "total_brands": len(results),
+                "pure_unmonetized_count": pure_unmonetized_count,
+                "partially_bypassed_count": len(results) - pure_unmonetized_count,
+                "total_bypassed_clicks": total_bypassed_clicks,
+                "total_internal_clicks": total_clicks_all,
+                "bypassed_share_pct": round((total_bypassed_clicks / total_clicks_all) * 100, 1) if total_clicks_all > 0 else 100.0,
+                "total_est_revenue": total_est_revenue,
+            },
+            "quick_wins": quick_wins,
+            "brands": results,
+        }
+
+        # Cache processed report for rapid access
+        cache_out = BASE_DIR / "backend" / "sample_data" / "unmonetized_brands_cache.json"
+        try:
+            with open(cache_out, "w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2)
+        except Exception:
+            pass
+
+        return report
+
     def get_monthly_rpc_timeseries(
         self,
         month: str = "2026-10",

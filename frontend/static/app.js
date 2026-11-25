@@ -214,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSearchAndFilters();
   setupAliasesModal();
   setupSaveReportModal();
+  setupUnmonetizedModalListeners();
   restoreAppState();
 });
 
@@ -2174,6 +2175,9 @@ async function initLiveDashboard(forceRefresh = false) {
       syncIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Live Stream 100% Synced</span>';
     }
 
+    // 5. Pre-hydrate Unmonetized Brands Report & Badges
+    loadUnmonetizedBrandsReport(forceRefresh);
+
   } catch (err) {
     console.error("Live dashboard init error:", err);
     if (syncIndicator) {
@@ -3730,3 +3734,343 @@ function showCopiedFeedback(btn) {
     btn.classList.remove("bg-emerald-700");
   }, 1800);
 }
+
+// ============================================================================
+// UNMONETIZED & BYPASSED BRANDS REPORT (LIVE DASHBOARD POPUP & EXPORT)
+// ============================================================================
+let unmonetizedBrandsReportData = null;
+let unmonetizedActiveFilter = "all"; // "all" | "pure" | "high"
+let unmonetizedActiveSort = "clicks_desc"; // "clicks_desc" | "clicks_asc" | "rev_desc" | "name_asc" | "name_desc"
+let unmonetizedSearchTerm = "";
+
+async function loadUnmonetizedBrandsReport(forceRefresh = false) {
+  try {
+    const url = `/api/live/unmonetized-brands${forceRefresh ? '?refresh=true' : ''}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to load unmonetized brands report");
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Server returned failure");
+
+    unmonetizedBrandsReportData = data;
+
+    // Update badges on Live Dashboard
+    const btnCountBadge = document.getElementById("badge-unmonetized-btn-count");
+    if (btnCountBadge && data.summary) {
+      btnCountBadge.textContent = data.summary.total_brands || 546;
+    }
+    const bannerPureBadge = document.getElementById("badge-unmonetized-banner-pure");
+    if (bannerPureBadge && data.summary) {
+      bannerPureBadge.textContent = `${data.summary.pure_unmonetized_count || 535} Brands with 0 Networks`;
+    }
+
+    // Update Modal KPIs & Info
+    const windowBadge = document.getElementById("modal-unmonetized-window-badge");
+    if (windowBadge && data.window_label) {
+      windowBadge.textContent = `📅 ${data.window_label}`;
+    }
+
+    const kpiPure = document.getElementById("modal-kpi-pure-count");
+    if (kpiPure && data.summary) {
+      kpiPure.textContent = `${(data.summary.pure_unmonetized_count || 0).toLocaleString()} Brands`;
+    }
+
+    const kpiClicks = document.getElementById("modal-kpi-bypassed-clicks");
+    if (kpiClicks && data.summary) {
+      kpiClicks.textContent = (data.summary.total_bypassed_clicks || 0).toLocaleString();
+    }
+
+    const kpiRev = document.getElementById("modal-kpi-est-revenue");
+    if (kpiRev && data.summary) {
+      kpiRev.textContent = `₹${Math.round(data.summary.total_est_revenue || 0).toLocaleString('en-IN')}`;
+    }
+
+    const kpiTopWin = document.getElementById("modal-kpi-top-win");
+    if (kpiTopWin && data.quick_wins && data.quick_wins.length > 0) {
+      const topWin = data.quick_wins[0];
+      kpiTopWin.textContent = topWin.brand;
+    }
+
+    // Update filter pill counts
+    const btnFilterAll = document.getElementById("btn-unmon-filter-all");
+    if (btnFilterAll && data.summary) {
+      btnFilterAll.textContent = `All Bypassed (${data.summary.total_brands})`;
+    }
+    const btnFilterPure = document.getElementById("btn-unmon-filter-pure");
+    if (btnFilterPure && data.summary) {
+      btnFilterPure.textContent = `🔴 100% Unmonetized (${data.summary.pure_unmonetized_count})`;
+    }
+
+    renderUnmonetizedTable();
+  } catch (err) {
+    console.warn("Notice loading unmonetized report:", err);
+  }
+}
+
+function renderUnmonetizedTable() {
+  const tbody = document.getElementById("unmonetized-table-body");
+  const emptyState = document.getElementById("unmonetized-table-empty");
+  const countLabel = document.getElementById("unmonetized-table-count");
+  if (!tbody || !unmonetizedBrandsReportData) return;
+
+  let brands = unmonetizedBrandsReportData.brands || [];
+
+  // 1. Filter by category
+  if (unmonetizedActiveFilter === "pure") {
+    brands = brands.filter(b => b.is_pure_unmonetized);
+  } else if (unmonetizedActiveFilter === "high") {
+    brands = brands.filter(b => (b.bypassed_clicks || 0) >= 10000);
+  }
+
+  // 2. Filter by search term
+  if (unmonetizedSearchTerm.trim()) {
+    const q = unmonetizedSearchTerm.trim().toLowerCase();
+    brands = brands.filter(b => {
+      const bName = (b.brand || "").toLowerCase();
+      const posStr = String(b.position || "");
+      const netsStr = (b.monetized_networks || []).join(" ").toLowerCase();
+      return bName.includes(q) || posStr.includes(q) || netsStr.includes(q);
+    });
+  }
+
+  // 3. Sort
+  brands = [...brands].sort((a, b) => {
+    switch (unmonetizedActiveSort) {
+      case "clicks_asc":
+        return (a.bypassed_clicks || 0) - (b.bypassed_clicks || 0);
+      case "rev_desc":
+        return (b.est_revenue || 0) - (a.est_revenue || 0);
+      case "name_asc":
+        return (a.brand || "").localeCompare(b.brand || "");
+      case "name_desc":
+        return (b.brand || "").localeCompare(a.brand || "");
+      case "clicks_desc":
+      default:
+        return (b.bypassed_clicks || 0) - (a.bypassed_clicks || 0);
+    }
+  });
+
+  if (countLabel) {
+    const totalAll = (unmonetizedBrandsReportData.brands || []).length;
+    countLabel.textContent = `Showing ${brands.length.toLocaleString()} of ${totalAll.toLocaleString()} brands`;
+  }
+
+  if (brands.length === 0) {
+    tbody.innerHTML = "";
+    if (emptyState) emptyState.classList.remove("hidden");
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add("hidden");
+
+  tbody.innerHTML = brands.map((b, idx) => {
+    const isPure = b.is_pure_unmonetized;
+    const initial = (b.brand || "M").charAt(0).toUpperCase();
+    const posLabel = b.position ? `<span class="text-[10px] text-slate-400 font-mono">ID ${escapeHtml(String(b.position))}</span>` : '';
+
+    const statusBadge = isPure
+      ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+           <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+           <span>100% Unmonetized</span>
+         </span>`
+      : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+           <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+           <span>Partially Bypassed</span>
+         </span>`;
+
+    const netsHtml = (b.monetized_networks && b.monetized_networks.length > 0)
+      ? b.monetized_networks.map(n => `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">${escapeHtml(n)}</span>`).join(" ")
+      : `<span class="text-[11px] text-slate-400 font-medium italic">None (0 networks)</span>`;
+
+    const actionQuery = b.action_query || b.brand;
+
+    return `
+      <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+        <td class="py-3 px-3 font-mono font-bold text-slate-400 text-[11px]">${idx + 1}</td>
+        <td class="py-3 px-4">
+          <div class="flex items-center space-x-2.5">
+            <span class="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center font-bold text-xs shrink-0">
+              ${escapeHtml(initial)}
+            </span>
+            <div>
+              <p class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(b.brand)}</p>
+              ${posLabel}
+            </div>
+          </div>
+        </td>
+        <td class="py-3 px-4">
+          <span class="font-mono font-bold text-slate-900 dark:text-white text-xs block">
+            ${(b.bypassed_clicks || 0).toLocaleString()}
+          </span>
+          <span class="text-[10px] text-slate-400 font-medium">
+            ${b.bypassed_share_pct || 100}% of clicks
+          </span>
+        </td>
+        <td class="py-3 px-3 whitespace-nowrap">
+          ${statusBadge}
+        </td>
+        <td class="py-3 px-3">
+          <div class="flex flex-wrap items-center gap-1 max-w-[180px]">
+            ${netsHtml}
+          </div>
+        </td>
+        <td class="py-3 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+          ₹${Math.round(b.est_revenue || 0).toLocaleString('en-IN')}
+        </td>
+        <td class="py-3 px-3 text-center whitespace-nowrap">
+          <button
+            type="button"
+            class="btn-search-unmonetized-brand px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white transition cursor-pointer active:scale-95"
+            data-brand="${escapeHtml(actionQuery)}"
+            title="Search for ${escapeHtml(b.brand)} campaigns across all affiliate networks"
+          >
+            <span>Search Networks ➔</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // Wire search action buttons
+  tbody.querySelectorAll(".btn-search-unmonetized-brand").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const brandName = btn.getAttribute("data-brand");
+      closeUnmonetizedModal();
+      switchToView("campaigns");
+      const sInput = document.getElementById("campaign-search-input");
+      if (sInput && brandName) {
+        sInput.value = brandName;
+        sInput.dispatchEvent(new Event("input", { bubbles: true }));
+        const sBtn = document.getElementById("btn-campaign-search");
+        if (sBtn) sBtn.click();
+      }
+    });
+  });
+}
+
+function openUnmonetizedModal() {
+  const modal = document.getElementById("modal-unmonetized-brands");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  document.body.classList.add("overflow-hidden");
+
+  if (!unmonetizedBrandsReportData) {
+    loadUnmonetizedBrandsReport();
+  } else {
+    renderUnmonetizedTable();
+  }
+}
+
+function closeUnmonetizedModal() {
+  const modal = document.getElementById("modal-unmonetized-brands");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  document.body.classList.remove("overflow-hidden");
+}
+
+function setupUnmonetizedModalListeners() {
+  // Open modal buttons
+  const btnOpenModal = document.getElementById("btn-open-unmonetized-modal");
+  const btnBannerOpen = document.getElementById("btn-banner-open-unmonetized");
+  if (btnOpenModal) btnOpenModal.addEventListener("click", openUnmonetizedModal);
+  if (btnBannerOpen) btnBannerOpen.addEventListener("click", openUnmonetizedModal);
+
+  // Close modal buttons
+  const btnCloseModal = document.getElementById("btn-close-unmonetized-modal");
+  const btnFooterClose = document.getElementById("btn-footer-close-unmonetized");
+  if (btnCloseModal) btnCloseModal.addEventListener("click", closeUnmonetizedModal);
+  if (btnFooterClose) btnFooterClose.addEventListener("click", closeUnmonetizedModal);
+
+  // Backdrop click to close
+  const modal = document.getElementById("modal-unmonetized-brands");
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeUnmonetizedModal();
+    });
+  }
+
+  // Escape key to close
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const m = document.getElementById("modal-unmonetized-brands");
+      if (m && !m.classList.contains("hidden")) {
+        closeUnmonetizedModal();
+      }
+    }
+  });
+
+  // Search input
+  const sInput = document.getElementById("input-unmonetized-search");
+  if (sInput) {
+    sInput.addEventListener("input", (e) => {
+      unmonetizedSearchTerm = e.target.value;
+      renderUnmonetizedTable();
+    });
+  }
+
+  // Filter pills
+  const btnFilterAll = document.getElementById("btn-unmon-filter-all");
+  const btnFilterPure = document.getElementById("btn-unmon-filter-pure");
+  const btnFilterHigh = document.getElementById("btn-unmon-filter-high");
+
+  function setFilterPillActive(activeBtn) {
+    [btnFilterAll, btnFilterPure, btnFilterHigh].forEach(b => {
+      if (!b) return;
+      if (b === activeBtn) {
+        b.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-2xs cursor-pointer transition";
+      } else {
+        b.className = "px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition";
+      }
+    });
+  }
+
+  if (btnFilterAll) {
+    btnFilterAll.onclick = () => {
+      unmonetizedActiveFilter = "all";
+      setFilterPillActive(btnFilterAll);
+      renderUnmonetizedTable();
+    };
+  }
+  if (btnFilterPure) {
+    btnFilterPure.onclick = () => {
+      unmonetizedActiveFilter = "pure";
+      setFilterPillActive(btnFilterPure);
+      renderUnmonetizedTable();
+    };
+  }
+  if (btnFilterHigh) {
+    btnFilterHigh.onclick = () => {
+      unmonetizedActiveFilter = "high";
+      setFilterPillActive(btnFilterHigh);
+      renderUnmonetizedTable();
+    };
+  }
+
+  // Sort dropdown
+  const sortSelect = document.getElementById("select-unmonetized-sort");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", (e) => {
+      unmonetizedActiveSort = e.target.value;
+      renderUnmonetizedTable();
+    });
+  }
+
+  // Export buttons
+  const btnExportCsv = document.getElementById("btn-export-unmonetized-csv");
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener("click", () => {
+      const filterParam = unmonetizedActiveFilter;
+      const exportUrl = `/api/live/unmonetized-brands/export?format=csv&filter=${filterParam}`;
+      window.location.href = exportUrl;
+    });
+  }
+
+  const btnExportExcel = document.getElementById("btn-export-unmonetized-excel");
+  if (btnExportExcel) {
+    btnExportExcel.addEventListener("click", () => {
+      const filterParam = unmonetizedActiveFilter;
+      const exportUrl = `/api/live/unmonetized-brands/export?format=excel&filter=${filterParam}`;
+      window.location.href = exportUrl;
+    });
+  }
+}
+

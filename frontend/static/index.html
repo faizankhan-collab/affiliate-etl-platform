@@ -996,8 +996,13 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Smooth Spline View</span>
             </span>
-            <button id="btn-refresh-live-stream" title="Autonomously query all 7 affiliate network APIs and Buyhatke clicks for fresh telemetry" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition cursor-pointer active:scale-95 shadow-2xs">
-              <i class="ph-bold ph-lightning text-amber-500"></i>
+            <button id="btn-open-unmonetized-modal" title="View brands with high click volume that have zero affiliate network monetizing them" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition cursor-pointer active:scale-95 shadow-xs">
+              <i class="ph-bold ph-storefront text-sm"></i>
+              <span>Unmonetized Brands</span>
+              <span id="badge-unmonetized-btn-count" class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/25 text-white">546</span>
+            </button>
+            <button id="btn-refresh-live-stream" title="Autonomously query all 7 affiliate network APIs and Buyhatke clicks for fresh telemetry" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 transition cursor-pointer active:scale-95 shadow-2xs">
+              <i class="ph-bold ph-lightning text-indigo-500"></i>
               <span>Live Ingest</span>
             </button>
           </div>
@@ -1177,6 +1182,39 @@
 
         <div id="live-alerts-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Alert cards injected here dynamically -->
+        </div>
+      </div>
+
+      <!-- Opportunity Intelligence Banner: Unmonetized High-Traffic Brands (Bypassed Traffic) -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent rounded-3xl border border-amber-200 dark:border-amber-900/50 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow-xs">
+        <div class="flex items-start sm:items-center space-x-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-2xl shadow-sm shrink-0">
+            <i class="ph-bold ph-storefront"></i>
+          </div>
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                Unmonetized High-Click Brands Report
+              </h4>
+              <span id="badge-unmonetized-banner-pure" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300">
+                535 Brands with 0 Networks
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                +₹11.6L Untapped Lift
+              </span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              <strong>7.03M bypassed clicks</strong> have no active affiliate network associated. High-traffic merchants like <strong>Meesho (507k)</strong>, <strong>Blinkit (197k)</strong>, <strong>Zepto (187k)</strong>, and <strong>JioMart (176k)</strong> can be onboarded to capture massive incremental revenue.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 self-start md:self-auto shrink-0">
+          <button id="btn-banner-open-unmonetized" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs flex items-center gap-2 cursor-pointer transition active:scale-95">
+            <i class="ph-bold ph-table"></i>
+            <span>View Full Report &amp; Export</span>
+            <i class="ph-bold ph-arrow-right text-xs"></i>
+          </button>
         </div>
       </div>
 
@@ -1997,6 +2035,167 @@
         <button id="btn-cancel-save-report" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">Cancel</button>
         <button id="btn-confirm-save-report" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition">Save Report</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Unmonetized & Bypassed Brands Opportunity Report -->
+  <div id="modal-unmonetized-brands" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white dark:bg-[#0c1220] rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden transition-all duration-200">
+      
+      <!-- Modal Header -->
+      <div class="p-6 pb-4 border-b border-slate-100 dark:border-slate-800/80 flex items-start justify-between gap-4">
+        <div class="flex items-start space-x-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">
+            <i class="ph-bold ph-storefront"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                Unmonetized Brands Report (Bypassed Traffic)
+              </h3>
+              <span id="modal-unmonetized-window-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 font-mono">
+                📅 Nov 01 – Nov 19, 2026
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Full directory of merchants receiving high internal click volume with <strong>zero affiliate network monetization</strong> (Bypassed). Search, sort, and export to onboard affiliate campaigns.
+            </p>
+          </div>
+        </div>
+
+        <button id="btn-close-unmonetized-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- KPI Summary Strip Inside Modal -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-4 bg-slate-50/70 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800/80">
+        <div class="p-3 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">100% Unmonetized</span>
+          <p id="modal-kpi-pure-count" class="text-lg font-black text-slate-900 dark:text-white font-mono mt-0.5">535 Brands</p>
+          <span class="text-[10px] text-slate-500">Zero affiliate networks</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Bypassed Clicks</span>
+          <p id="modal-kpi-bypassed-clicks" class="text-lg font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">7,033,926</p>
+          <span class="text-[10px] text-slate-500">66.1% of portfolio traffic</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Untapped Revenue</span>
+          <p id="modal-kpi-est-revenue" class="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">₹1,161,301</p>
+          <span class="text-[10px] text-slate-500">@ ₹0.1651 benchmark RPC</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Top Quick Win</span>
+          <p id="modal-kpi-top-win" class="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans mt-0.5 truncate">Meesho</p>
+          <span class="text-[10px] text-slate-500 font-mono">507k clicks • +₹83.8k lift</span>
+        </div>
+      </div>
+
+      <!-- Controls & Filter Toolbar -->
+      <div class="p-4 px-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Search & Filter Tabs -->
+        <div class="flex flex-wrap items-center gap-2.5 flex-1">
+          <div class="relative w-full sm:w-64">
+            <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+            <input
+              type="text"
+              id="input-unmonetized-search"
+              placeholder="Search brand (e.g. Meesho, Blinkit)..."
+              class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#090f1d] border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 text-slate-800 dark:text-slate-100 font-medium"
+            >
+          </div>
+
+          <div class="flex items-center gap-1.5" id="unmonetized-filter-pills">
+            <button id="btn-unmon-filter-all" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-2xs cursor-pointer transition">
+              All Bypassed (546)
+            </button>
+            <button id="btn-unmon-filter-pure" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition">
+              🔴 100% Unmonetized (535)
+            </button>
+            <button id="btn-unmon-filter-high" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition">
+              ⚡ High Traffic (&gt;10k)
+            </button>
+          </div>
+        </div>
+
+        <!-- Sorting & Export Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Sort Dropdown -->
+          <div class="flex items-center gap-1 text-xs">
+            <span class="text-slate-400 font-medium">Sort:</span>
+            <select
+              id="select-unmonetized-sort"
+              class="px-2.5 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-[#090f1d] border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 font-medium cursor-pointer focus:outline-none"
+            >
+              <option value="clicks_desc">Clicks: High to Low</option>
+              <option value="clicks_asc">Clicks: Low to High</option>
+              <option value="rev_desc">Est. Revenue: High to Low</option>
+              <option value="name_asc">Brand: A to Z</option>
+              <option value="name_desc">Brand: Z to A</option>
+            </select>
+          </div>
+
+          <!-- Export Actions -->
+          <button
+            id="btn-export-unmonetized-csv"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 flex items-center gap-1.5 cursor-pointer transition active:scale-95 shadow-2xs"
+            title="Download CSV file"
+          >
+            <i class="ph-bold ph-file-csv text-emerald-600 dark:text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
+          <button
+            id="btn-export-unmonetized-excel"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 cursor-pointer transition active:scale-95 shadow-2xs"
+            title="Download formatted Excel workbook"
+          >
+            <i class="ph-bold ph-file-xls"></i>
+            <span>Export Excel</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table Container -->
+      <div class="flex-1 overflow-y-auto px-6 py-2">
+        <table class="w-full text-xs text-left">
+          <thead class="sticky top-0 bg-white dark:bg-[#0c1220] z-10 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <tr>
+              <th class="py-3 px-3 w-12">#</th>
+              <th class="py-3 px-4">Brand / Website</th>
+              <th class="py-3 px-4">Bypassed Clicks</th>
+              <th class="py-3 px-3">Monetization Status</th>
+              <th class="py-3 px-3">Active Networks</th>
+              <th class="py-3 px-4 text-right">Est. Potential Revenue</th>
+              <th class="py-3 px-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="unmonetized-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+            <!-- Dynamic Brand Rows Injected Here -->
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div id="unmonetized-table-empty" class="hidden py-12 text-center text-slate-400">
+          <i class="ph-bold ph-magnifying-glass text-3xl mb-2 inline-block"></i>
+          <p class="font-medium text-slate-600 dark:text-slate-300">No brands found matching your filter criteria.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 px-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/20">
+        <div>
+          <span id="unmonetized-table-count" class="font-bold text-slate-800 dark:text-slate-200 font-mono">Showing 546 of 546 brands</span>
+          <span class="text-[11px] ml-1.5 hidden sm:inline">• Click brand action to inspect affiliate networks</span>
+        </div>
+        <button
+          id="btn-footer-close-unmonetized"
+          class="px-4 py-1.5 rounded-xl font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"
+        >
+          Close
+        </button>
+      </div>
+
     </div>
   </div>
 
