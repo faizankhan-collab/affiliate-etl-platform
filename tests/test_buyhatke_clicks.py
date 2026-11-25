@@ -163,6 +163,28 @@ class TestBuyhatkeClicksService(unittest.TestCase):
         self.assertGreater(res["summary"]["lowest_day"]["rpc"], 0)
         self.assertIn("alerts", res)
         self.assertIn("top_merchants_today", res)
+        
+        # Test 7-Day Rolling Diagnostic Engine & Live Alerts
+        self.assertIn("rolling_7d", res["summary"])
+        rolling_7d = res["summary"]["rolling_7d"]
+        self.assertIn("current_7d_rpc", rolling_7d)
+        self.assertIn("prior_7d_rpc", rolling_7d)
+        self.assertIn("change_pct", rolling_7d)
+        self.assertIn("status", rolling_7d)
+        self.assertIn("total_potential_gain", rolling_7d)
+        self.assertGreater(rolling_7d["total_potential_gain"], 0)
+
+        alerts = res["alerts"]
+        self.assertGreaterEqual(len(alerts), 4)
+        for a in alerts:
+            self.assertIn("id", a)
+            self.assertIn("badge", a)
+            self.assertIn("title", a)
+            self.assertIn("observation", a)
+            self.assertIn("root_cause", a)
+            self.assertIn("how_to_increase", a)
+            self.assertIn("projected_gain", a)
+            self.assertIn("action_label", a)
 
     def test_api_live_rpc_timeseries_endpoint(self):
         import asyncio

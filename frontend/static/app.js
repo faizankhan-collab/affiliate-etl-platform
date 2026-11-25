@@ -1899,55 +1899,211 @@ async function initLiveDashboard(forceRefresh = false) {
       });
     }
 
-    // 3. Render Real-Time Anomaly & Downfall Alerts
-    if (alertsContainer) {
-      alertsContainer.innerHTML = alerts
-        .map((a) => {
-          const isCritical = a.severity === "critical";
-          const isWarning = a.severity === "warning";
-          const borderCls = isCritical
-            ? "border-red-300 dark:border-red-800/80 bg-red-50/40 dark:bg-red-950/20"
-            : isWarning
-            ? "border-amber-300 dark:border-amber-800/80 bg-amber-50/40 dark:bg-amber-950/20"
-            : "border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/40 dark:bg-emerald-950/20";
-          const badgeCls = isCritical
-            ? "bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300"
-            : isWarning
-            ? "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300"
-            : "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300";
-          const icon = isCritical
-            ? "ph-warning-octagon text-red-600 dark:text-red-400"
-            : isWarning
-            ? "ph-warning text-amber-600 dark:text-amber-400"
-            : "ph-trend-up text-emerald-600 dark:text-emerald-400";
+    // 3. Render Live 1-Week Early Warning & RPC Optimization Alerts
+    const rolling7d = summary.rolling_7d || {};
+    const badgeTotalAlerts = document.getElementById("badge-total-alerts");
+    const badge7dRpc = document.getElementById("badge-7d-rpc");
+    const badge7dChange = document.getElementById("badge-7d-change");
+    const badgePortfolioHealth = document.getElementById("badge-portfolio-health");
+    const textPortfolioHealth = document.getElementById("text-portfolio-health");
+    const badgePotentialLift = document.getElementById("badge-potential-lift");
 
-          return `
-            <div class="p-4 rounded-2xl border ${borderCls} flex flex-col justify-between space-y-3 transition hover:shadow-sm">
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${badgeCls}">
-                    <i class="ph-bold ${icon}"></i>
-                    <span>${escapeHtml(a.severity)}</span>
-                  </span>
-                  <span class="text-[10px] text-slate-400 font-medium">${escapeHtml(a.timestamp)}</span>
-                </div>
-                <h4 class="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                  ${escapeHtml(a.title)}
-                </h4>
-                <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  ${escapeHtml(a.desc)}
-                </p>
-              </div>
-              <div class="pt-2 border-t border-slate-200/50 dark:border-slate-800/60 flex items-center justify-between text-[11px]">
-                <span class="font-bold text-slate-700 dark:text-slate-300 font-mono">${escapeHtml(a.impact)}</span>
-                <span class="text-indigo-600 dark:text-indigo-400 font-semibold">
-                  ${escapeHtml(a.brand)} (${escapeHtml(a.network)})
+    if (badgeTotalAlerts) badgeTotalAlerts.textContent = `${alerts.length} Insights`;
+    if (badge7dRpc && rolling7d.current_7d_rpc !== undefined) {
+      badge7dRpc.textContent = `₹${rolling7d.current_7d_rpc.toFixed(4)}`;
+    }
+    if (badge7dChange && rolling7d.change_pct !== undefined) {
+      const isNegative = rolling7d.change_pct < 0;
+      badge7dChange.textContent = `${isNegative ? '▼' : '▲'} ${Math.abs(rolling7d.change_pct).toFixed(1)}%`;
+      badge7dChange.className = `text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+        isNegative 
+          ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' 
+          : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
+      }`;
+    }
+    if (badgePortfolioHealth && textPortfolioHealth && rolling7d.status) {
+      textPortfolioHealth.textContent = rolling7d.status_label || (rolling7d.status === 'warning' ? 'Action Required' : 'Healthy Trajectory');
+      if (rolling7d.status === 'warning') {
+        badgePortfolioHealth.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold shadow-2xs";
+      } else {
+        badgePortfolioHealth.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-2xs";
+      }
+    }
+    if (badgePotentialLift && rolling7d.total_potential_gain) {
+      badgePotentialLift.textContent = `+₹${Math.round(rolling7d.total_potential_gain).toLocaleString('en-IN')}/wk`;
+    }
+
+    // Function to render filtered alert cards
+    function renderAlertCards(itemsToRender) {
+      if (!alertsContainer) return;
+      if (!itemsToRender || itemsToRender.length === 0) {
+        alertsContainer.innerHTML = `
+          <div class="col-span-full py-8 text-center text-slate-400 text-xs bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+            <i class="ph-bold ph-check-circle text-emerald-500 text-xl mb-1 inline-block"></i>
+            <p class="font-medium text-slate-600 dark:text-slate-300">No active alerts in this category.</p>
+          </div>
+        `;
+        return;
+      }
+
+      alertsContainer.innerHTML = itemsToRender.map(a => {
+        const isCritical = a.severity === "critical";
+        const isWarning = a.severity === "warning";
+        const isOpportunity = a.severity === "opportunity" || a.category === "arbitrage";
+
+        const borderCls = isCritical
+          ? "border-rose-200 dark:border-rose-900/60 bg-white dark:bg-[#0c1322] hover:border-rose-400"
+          : isWarning
+          ? "border-amber-200 dark:border-amber-900/60 bg-white dark:bg-[#0c1322] hover:border-amber-400"
+          : "border-emerald-200 dark:border-emerald-900/60 bg-white dark:bg-[#0c1322] hover:border-emerald-400";
+
+        const badgeCls = isCritical
+          ? "bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60"
+          : isWarning
+          ? "bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60"
+          : "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60";
+
+        const icon = isCritical
+          ? "ph-warning-octagon text-rose-600 dark:text-rose-400"
+          : isWarning
+          ? "ph-warning text-amber-600 dark:text-amber-400"
+          : "ph-trend-up text-emerald-600 dark:text-emerald-400";
+
+        const actionBoxCls = isOpportunity
+          ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50"
+          : isCritical
+          ? "bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50"
+          : "bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50";
+
+        const btnCls = isOpportunity
+          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+          : isCritical
+          ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+          : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs";
+
+        return `
+          <div class="p-5 rounded-2xl border ${borderCls} flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition">
+            
+            <!-- Card Header -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${badgeCls}">
+                  <i class="ph-bold ${icon}"></i>
+                  <span>${escapeHtml(a.badge || a.severity)}</span>
                 </span>
+                <span class="text-[11px] font-mono font-medium text-slate-400 dark:text-slate-500">${escapeHtml(a.timestamp)}</span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                ${escapeHtml(a.title)}
+              </h4>
+            </div>
+
+            <!-- Observations & Root Cause (Simple & Readable) -->
+            <div class="space-y-2 text-xs">
+              <div class="flex items-start gap-2 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                <span class="font-bold text-slate-500 shrink-0">📍 What Happened:</span>
+                <span class="text-slate-700 dark:text-slate-200 leading-relaxed">${escapeHtml(a.observation || a.desc)}</span>
+              </div>
+              <div class="flex items-start gap-2 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                <span class="font-bold text-slate-500 shrink-0">🔍 Root Cause:</span>
+                <span class="text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(a.root_cause || "Traffic allocation variance")}</span>
               </div>
             </div>
-          `;
-        })
-        .join("");
+
+            <!-- Action Box: How to Increase RPC & Projected Gain -->
+            <div class="p-3.5 rounded-xl ${actionBoxCls} space-y-1.5 border">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                  <i class="ph-bold ph-lightbulb text-sm"></i>
+                  <span>How to Increase RPC:</span>
+                </span>
+                <span class="text-xs font-mono font-black text-emerald-700 dark:text-emerald-400">
+                  ${escapeHtml(a.projected_gain || a.impact)}
+                </span>
+              </div>
+              <p class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                ${escapeHtml(a.how_to_increase || a.desc)}
+              </p>
+            </div>
+
+            <!-- 1-Click Action Button -->
+            <button
+              type="button"
+              class="btn-alert-action w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 ${btnCls} transition cursor-pointer active:scale-98"
+              data-action-type="${escapeHtml(a.action_type || 'none')}"
+              data-action-query="${escapeHtml(a.action_query || '')}"
+            >
+              <span>${escapeHtml(a.action_label || 'Take Action ➔')}</span>
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      // Wire up action buttons
+      alertsContainer.querySelectorAll(".btn-alert-action").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const aType = btn.getAttribute("data-action-type");
+          const aQuery = btn.getAttribute("data-action-query");
+
+          if (aType === "open_campaign_finder") {
+            switchToView("campaigns");
+            const sInput = document.getElementById("campaign-search-input");
+            if (sInput && aQuery) {
+              sInput.value = aQuery;
+              sInput.dispatchEvent(new Event("input", { bubbles: true }));
+              const sBtn = document.getElementById("btn-campaign-search");
+              if (sBtn) sBtn.click();
+            }
+          } else if (aType === "scroll_merchant_table") {
+            const mTable = document.getElementById("live-merchants-table-body");
+            if (mTable) {
+              mTable.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          } else if (aType === "filter_opportunities") {
+            const oppBtn = document.getElementById("btn-alert-filter-opps");
+            if (oppBtn) oppBtn.click();
+          }
+        });
+      });
+    }
+
+    renderAlertCards(alerts);
+
+    // Wire filter buttons
+    const btnFilterAll = document.getElementById("btn-alert-filter-all");
+    const btnFilterOpps = document.getElementById("btn-alert-filter-opps");
+    const btnFilterWarns = document.getElementById("btn-alert-filter-warns");
+
+    function updateFilterButtons(activeBtn) {
+      [btnFilterAll, btnFilterOpps, btnFilterWarns].forEach(b => {
+        if (!b) return;
+        if (b === activeBtn) {
+          b.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs cursor-pointer transition";
+        } else {
+          b.className = "px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer transition";
+        }
+      });
+    }
+
+    if (btnFilterAll) {
+      btnFilterAll.onclick = () => {
+        updateFilterButtons(btnFilterAll);
+        renderAlertCards(alerts);
+      };
+    }
+    if (btnFilterOpps) {
+      btnFilterOpps.onclick = () => {
+        updateFilterButtons(btnFilterOpps);
+        const opps = alerts.filter(a => a.category === "arbitrage" || a.severity === "opportunity");
+        renderAlertCards(opps);
+      };
+    }
+    if (btnFilterWarns) {
+      btnFilterWarns.onclick = () => {
+        updateFilterButtons(btnFilterWarns);
+        const warns = alerts.filter(a => a.category === "early_warning" || a.category === "leakage" || a.severity === "warning" || a.severity === "critical");
+        renderAlertCards(warns);
+      };
     }
 
     // 4. Render Today's Live Merchant Table (Collective Brand Matrix)

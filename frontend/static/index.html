@@ -1113,25 +1113,69 @@
 
       </div>
 
-      <!-- Real-Time Anomaly & Downfall Alerts Section -->
-      <div class="bg-white dark:bg-[#0d1424] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center">
-              <i class="ph-bold ph-warning-octagon text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Real-Time Anomaly & Downfall Alerts</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300">3 Alerts</span>
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Automated tripwires monitoring RPC drops >25% and traffic with zero attribution</p>
+      <!-- Live 1-Week Early Warning Alerts & RPC Improvement Intelligence Section -->
+      <div class="bg-white dark:bg-[#0d1424] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-5">
+        
+        <!-- Top Section Header & Rolling 7-Day Performance Banner -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/60 shadow-2xs">
+                <i class="ph-bold ph-lightning text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Live 1-Week Lead Alerts &amp; RPC Optimization</span>
+                  <span id="badge-total-alerts" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">4 Insights</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  Proactive 7-day trend monitoring: flags downfall root causes early and reveals exact actions to lift RPC.
+                </p>
+              </div>
             </div>
           </div>
-          <span class="text-[11px] text-slate-400 font-medium">Auto-checked 2m ago</span>
+
+          <!-- 7-Day Rolling Trajectory Pill Strip -->
+          <div class="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+            <!-- 7-Day RPC Badge -->
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Trailing 7D RPC:</span>
+              <span id="badge-7d-rpc" class="font-mono font-bold text-xs text-slate-900 dark:text-white">₹0.1651</span>
+              <span id="badge-7d-change" class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">▼ -11.6%</span>
+            </div>
+
+            <!-- Health Status -->
+            <div id="badge-portfolio-health" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span id="text-portfolio-health">Action Required</span>
+            </div>
+
+            <!-- Potential Lift -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold shadow-2xs">
+              <i class="ph-bold ph-trend-up"></i>
+              <span>Potential Lift:</span>
+              <span id="badge-potential-lift" class="font-mono text-emerald-700 dark:text-emerald-400">+₹15,557/wk</span>
+            </div>
+          </div>
         </div>
 
-        <div id="live-alerts-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filter Buttons (All, Opportunities to Increase RPC, Early Warnings) -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <div class="flex flex-wrap items-center gap-2" id="alerts-filter-bar">
+            <button id="btn-alert-filter-all" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs cursor-pointer transition">
+              All Insights (4)
+            </button>
+            <button id="btn-alert-filter-opps" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer transition">
+              🚀 How to Increase RPC (2)
+            </button>
+            <button id="btn-alert-filter-warns" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer transition">
+              ⚠️ Early Warnings (2)
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">Auto-calculated from trailing 30-day telemetry</span>
+        </div>
+
+        <div id="live-alerts-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Alert cards injected here dynamically -->
         </div>
       </div>
