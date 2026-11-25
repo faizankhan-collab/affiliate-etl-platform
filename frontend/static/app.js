@@ -3257,10 +3257,14 @@ function renderNetworkPills(networks) {
     btn.dataset.network = net.id;
     
     let icon = "🌐";
-    if (net.id === "cuelinks") icon = "🔗";
-    else if (net.id === "cashkaro") icon = "⚡";
-    else if (net.id === "cj") icon = "🌟";
+    if (net.id === "special_own") icon = "💎";
+    else if (net.id === "cuelinks") icon = "🔗";
     else if (net.id === "admitad") icon = "🛡️";
+    else if (net.id === "cj") icon = "🌟";
+    else if (net.id === "cashkaro") icon = "⚡";
+    else if (net.id === "zonet") icon = "🚀";
+    else if (net.id === "pantech") icon = "⚡";
+    else if (net.id === "icubeswire") icon = "📱";
     else if (net.id === "inrdeals") icon = "₹";
 
     btn.innerHTML = `${icon} ${escapeHtml(net.name)} <span class="ml-1 opacity-80 font-bold">(${net.count.toLocaleString()})</span>`;
@@ -3297,13 +3301,23 @@ function syncNetworkControls(netId) {
   const badge = document.getElementById("active-network-name-badge");
   if (badge) {
     if (netId === "all") {
-      badge.textContent = "All Networks (Cuelinks + CashKaro + CJ): Connected 🟢";
-    } else if (netId === "cashkaro") {
-      badge.textContent = "CashKaro Trackier: Connected 🟢";
+      badge.textContent = "All 8 Networks: Connected 🟢 (30,349+ Live Campaigns)";
+    } else if (netId === "special_own") {
+      badge.textContent = "Special (OWN) Direct Partnerships: Connected 🟢";
     } else if (netId === "cuelinks") {
-      badge.textContent = "Cuelinks API v3: Connected 🟢";
+      badge.textContent = "Cuelinks API v3: Connected 🟢 (26.5k Campaigns)";
+    } else if (netId === "admitad") {
+      badge.textContent = "Admitad Official OAuth 2.0 API: Connected 🟢 (779 Campaigns)";
     } else if (netId === "cj") {
-      badge.textContent = "CJ Affiliate: Connected 🟢";
+      badge.textContent = "CJ Affiliate Lookup API: Connected 🟢 (2.8k Advertisers)";
+    } else if (netId === "cashkaro") {
+      badge.textContent = "CashKaro Trackier: Connected 🟢 (235 Campaigns)";
+    } else if (netId === "zonet") {
+      badge.textContent = "Zonet (GoTrackzo): Connected 🟢";
+    } else if (netId === "pantech") {
+      badge.textContent = "Pantech Digital: Connected 🟢";
+    } else if (netId === "icubeswire") {
+      badge.textContent = "iCubesWire: Connected 🟢";
     } else {
       badge.textContent = `${netId.toUpperCase()}: Connected 🟢`;
     }
@@ -3453,10 +3467,15 @@ function renderCampaignResults(data) {
   const results = data.results || [];
 
   if (countLabel) {
-    let netDisplay = "All Networks (Cuelinks + CashKaro + CJ)";
-    if (campaignState.network === "cuelinks") netDisplay = "Cuelinks";
-    else if (campaignState.network === "cashkaro") netDisplay = "CashKaro";
+    let netDisplay = "All 8 Networks (30,349+ Campaigns)";
+    if (campaignState.network === "special_own") netDisplay = "Special (OWN) Direct";
+    else if (campaignState.network === "cuelinks") netDisplay = "Cuelinks";
+    else if (campaignState.network === "admitad") netDisplay = "Admitad";
     else if (campaignState.network === "cj") netDisplay = "CJ Affiliate";
+    else if (campaignState.network === "cashkaro") netDisplay = "CashKaro";
+    else if (campaignState.network === "zonet") netDisplay = "Zonet (GoTrackzo)";
+    else if (campaignState.network === "pantech") netDisplay = "Pantech Digital";
+    else if (campaignState.network === "icubeswire") netDisplay = "iCubesWire";
     countLabel.textContent = `Showing ${results.length} live campaigns across ${netDisplay}`;
   }
 
@@ -3501,10 +3520,15 @@ async function fetchAndRenderCampaigns() {
     return;
   }
 
-  let netSearchLabel = "All Networks (Cuelinks + CashKaro + CJ)";
-  if (campaignState.network === "cuelinks") netSearchLabel = "Cuelinks API";
-  else if (campaignState.network === "cashkaro") netSearchLabel = "CashKaro Trackier";
+  let netSearchLabel = "All 8 Networks (30,349+ Campaigns)";
+  if (campaignState.network === "special_own") netSearchLabel = "Special (OWN) Direct Contract";
+  else if (campaignState.network === "cuelinks") netSearchLabel = "Cuelinks API";
+  else if (campaignState.network === "admitad") netSearchLabel = "Admitad Official OAuth 2.0 API";
   else if (campaignState.network === "cj") netSearchLabel = "CJ Affiliate Lookup API";
+  else if (campaignState.network === "cashkaro") netSearchLabel = "CashKaro Trackier";
+  else if (campaignState.network === "zonet") netSearchLabel = "Zonet (GoTrackzo)";
+  else if (campaignState.network === "pantech") netSearchLabel = "Pantech Digital";
+  else if (campaignState.network === "icubeswire") netSearchLabel = "iCubesWire";
 
   cardsGrid.innerHTML = `
     <div class="col-span-full py-12 text-center text-slate-400">
@@ -3555,11 +3579,15 @@ function createCampaignCard(c) {
   // Network badge colors
   let netColorClass = "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
   const nid = (c.network_id || "").toLowerCase();
-  if (nid === "cuelinks") netColorClass = "bg-sky-500/15 text-sky-400 border-sky-500/30";
-  else if (nid === "cashkaro") netColorClass = "bg-rose-500/15 text-rose-400 border-rose-500/30";
+  if (nid === "special_own") netColorClass = "bg-purple-500/15 text-purple-400 border-purple-500/30";
+  else if (nid === "cuelinks") netColorClass = "bg-sky-500/15 text-sky-400 border-sky-500/30";
   else if (nid === "admitad") netColorClass = "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-  else if (nid === "inrdeals") netColorClass = "bg-purple-500/15 text-purple-400 border-purple-500/30";
   else if (nid === "cj") netColorClass = "bg-amber-500/15 text-amber-400 border-amber-500/30";
+  else if (nid === "cashkaro") netColorClass = "bg-rose-500/15 text-rose-400 border-rose-500/30";
+  else if (nid === "zonet") netColorClass = "bg-blue-500/15 text-blue-400 border-blue-500/30";
+  else if (nid === "pantech") netColorClass = "bg-teal-500/15 text-teal-400 border-teal-500/30";
+  else if (nid === "icubeswire") netColorClass = "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
+  else if (nid === "inrdeals") netColorClass = "bg-purple-500/15 text-purple-400 border-purple-500/30";
 
   // Status badge
   let statusHtml = '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>Active</span></span>';
@@ -3587,26 +3615,30 @@ function createCampaignCard(c) {
     ? `<img src="${escapeHtml(c.image_url)}" alt="${escapeHtml(c.brand_name)}" class="w-9 h-9 rounded-xl object-contain bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0" onerror="this.onerror=null; this.src=''; this.classList.add('hidden');" />`
     : `<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shrink-0 border border-sky-500/40">${brandInitial}</div>`;
 
-  const networkName = c.network_name || (nid === "cashkaro" ? "CashKaro" : (nid === "cj" ? "CJ Affiliate" : "Cuelinks"));
-  const panelUrl = c.panel_url || (nid === "cashkaro" 
-    ? `/api/campaigns/open?network=cashkaro&id=${encodeURIComponent(c.id)}` 
-    : (nid === "cj"
-      ? `/api/campaigns/open?network=cj&id=${encodeURIComponent(c.id)}`
-      : `/api/campaigns/open?network=cuelinks&brand=${encodeURIComponent(c.brand_name)}`));
+  const networkName = c.network_name || nid.toUpperCase();
+  const panelUrl = c.panel_url || `/api/campaigns/open?network=${encodeURIComponent(nid)}&brand=${encodeURIComponent(c.brand_name || '')}&id=${encodeURIComponent(c.id || '')}`;
 
-  const payoutColorClass = isBest 
-    ? 'text-emerald-500 dark:text-emerald-400' 
-    : (nid === 'cashkaro' ? 'text-rose-500 dark:text-rose-400' : (nid === 'cj' ? 'text-amber-500 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400'));
+  let payoutColorClass = 'text-sky-600 dark:text-sky-400';
+  if (isBest) payoutColorClass = 'text-emerald-500 dark:text-emerald-400';
+  else if (nid === 'special_own') payoutColorClass = 'text-purple-500 dark:text-purple-400';
+  else if (nid === 'cashkaro') payoutColorClass = 'text-rose-500 dark:text-rose-400';
+  else if (nid === 'cj') payoutColorClass = 'text-amber-500 dark:text-amber-400';
+  else if (nid === 'admitad') payoutColorClass = 'text-emerald-500 dark:text-emerald-400';
+  else if (nid === 'zonet') payoutColorClass = 'text-blue-500 dark:text-blue-400';
+  else if (nid === 'pantech') payoutColorClass = 'text-teal-500 dark:text-teal-400';
+  else if (nid === 'icubeswire') payoutColorClass = 'text-cyan-500 dark:text-cyan-400';
 
-  const defaultDesc = nid === "cashkaro" 
-    ? "Live CashKaro Trackier offer." 
-    : (nid === "cj" ? "CJ Affiliate advertiser offer." : "Active Cuelinks v3 campaign offer.");
+  const defaultDesc = c.description || `${networkName} verified affiliate campaign offer.`;
 
   const epcPrefix = nid === 'cj' ? '$' : '₹';
-  const applyTitle = nid === 'cashkaro' 
-    ? 'Request Approval on CashKaro Trackier Portal' 
-    : (nid === 'cj' ? 'Join Program on CJ Affiliate Member Portal' : 'Apply on Cuelinks Dashboard');
-  const applyText = nid === 'cashkaro' ? 'Request Approval' : (nid === 'cj' ? 'Apply on CJ' : 'Apply on Dashboard');
+  const applyTitle = `View campaign details on ${escapeHtml(networkName)}`;
+  const applyText = nid === 'cashkaro' 
+    ? 'Request Approval' 
+    : (nid === 'cj' 
+      ? 'Apply on CJ' 
+      : (nid === 'special_own' 
+        ? 'Direct Partnership' 
+        : `View on ${networkName}`));
 
   card.innerHTML = `
     <div>

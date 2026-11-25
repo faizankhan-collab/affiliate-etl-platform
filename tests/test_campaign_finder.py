@@ -18,13 +18,18 @@ class TestUniversalCampaignFinder(unittest.TestCase):
 
     def test_networks_summary(self):
         summary = self.service.get_networks_summary()
-        self.assertGreaterEqual(len(summary), 4)
+        self.assertGreaterEqual(len(summary), 9)
         net_ids = [n["id"] for n in summary]
         self.assertIn("all", net_ids)
+        self.assertIn("special_own", net_ids)
         self.assertIn("cuelinks", net_ids)
-        self.assertIn("cashkaro", net_ids)
+        self.assertIn("admitad", net_ids)
         self.assertIn("cj", net_ids)
-        
+        self.assertIn("cashkaro", net_ids)
+        self.assertIn("zonet", net_ids)
+        self.assertIn("pantech", net_ids)
+        self.assertIn("icubeswire", net_ids)
+
         cuelinks_net = next(n for n in summary if n["id"] == "cuelinks")
         self.assertEqual(cuelinks_net["status"], "connected")
         self.assertIn("Official REST API", cuelinks_net["badge"])
@@ -37,6 +42,24 @@ class TestUniversalCampaignFinder(unittest.TestCase):
         self.assertEqual(cj_net["status"], "connected")
         self.assertIn("Lookup API", cj_net["badge"])
         self.assertEqual(cj_net["count"], 2816)
+
+        admitad_net = next(n for n in summary if n["id"] == "admitad")
+        self.assertEqual(admitad_net["status"], "connected")
+        self.assertIn("OAuth 2.0", admitad_net["badge"])
+        self.assertEqual(admitad_net["count"], 779)
+
+        own_net = next(n for n in summary if n["id"] == "special_own")
+        self.assertEqual(own_net["status"], "connected")
+        self.assertEqual(own_net["count"], 2)
+
+        zonet_net = next(n for n in summary if n["id"] == "zonet")
+        self.assertEqual(zonet_net["status"], "connected")
+
+        pantech_net = next(n for n in summary if n["id"] == "pantech")
+        self.assertEqual(pantech_net["status"], "connected")
+
+        icubes_net = next(n for n in summary if n["id"] == "icubeswire")
+        self.assertEqual(icubes_net["status"], "connected")
 
     def test_categories(self):
         cats = self.service.get_categories()
@@ -179,7 +202,9 @@ class TestUniversalCampaignFinder(unittest.TestCase):
             }
         ]
 
-        with patch.object(self.service.cashkaro, "search_campaigns", return_value=mock_cashkaro_campaigns):
+        with patch.object(self.service.cashkaro, "search_campaigns", return_value=mock_cashkaro_campaigns), \
+             patch.object(self.service.admitad, "search_campaigns", return_value=[]), \
+             patch.object(self.service.zonet, "search_campaigns", return_value=[]):
             res = self.service.search_campaigns(query="Myntra", network="all")
             self.assertTrue(res["success"])
             self.assertEqual(len(res["results"]), 2)
@@ -278,6 +303,8 @@ class TestUniversalCampaignFinder(unittest.TestCase):
 
         with patch.object(requests.Session, "get", return_value=mock_cue_resp), \
              patch.object(self.service.cashkaro, "search_campaigns", return_value=[]), \
+             patch.object(self.service.admitad, "search_campaigns", return_value=[]), \
+             patch.object(self.service.zonet, "search_campaigns", return_value=[]), \
              patch.object(self.service.cj, "search_advertisers", return_value=mock_cj_items):
             res_all = self.service.search_campaigns(query="Dell", network="all")
             self.assertTrue(res_all["success"])
@@ -290,6 +317,38 @@ class TestUniversalCampaignFinder(unittest.TestCase):
             self.assertTrue(cj_card.get("is_best_payout"))
             self.assertIn("higher than Cuelinks", cj_card.get("payout_diff_label", ""))
             self.assertFalse(cue_card.get("is_best_payout", False))
+
+    def test_special_own_and_pantech_arbitrage(self):
+        res = self.service.search_campaigns(query="Ajio", network="all")
+        self.assertTrue(res["success"])
+        self.assertGreaterEqual(len(res["results"]), 2)
+
+        ajio_own = next(r for r in res["results"] if r["network_id"] == "special_own")
+        self.assertEqual(ajio_own["brand_name"], "Ajio")
+        self.assertTrue(ajio_own.get("is_best_payout"))
+        self.assertIn("3.0x Higher RPC", ajio_own.get("payout_diff_label", ""))
+
+    def test_air_india_direct_contract(self):
+        res = self.service.search_campaigns(query="Air India", network="all")
+        self.assertTrue(res["success"])
+        ai_own = next(r for r in res["results"] if r["network_id"] == "special_own")
+        self.assertEqual(ai_own["brand_name"], "Air India")
+        self.assertTrue(ai_own.get("is_best_payout"))
+        self.assertIn("₹150 Flat Payout", ai_own.get("payout_diff_label", ""))
+
+    def test_zonet_flipkart_arbitrage(self):
+        res = self.service.search_campaigns(query="Flipkart", network="all")
+        self.assertTrue(res["success"])
+        fk_zonet = next(r for r in res["results"] if r["network_id"] == "zonet")
+        self.assertTrue(fk_zonet.get("is_best_payout"))
+        self.assertIn("higher than Pantech", fk_zonet.get("payout_diff_label", ""))
+
+    def test_individual_network_searches(self):
+        for net in ["admitad", "special_own", "zonet", "pantech", "icubeswire"]:
+            res = self.service.search_campaigns(network=net)
+            self.assertTrue(res["success"])
+            self.assertGreater(len(res["results"]), 0)
+            self.assertEqual(res["results"][0]["network_id"], net)
 
 
 if __name__ == "__main__":

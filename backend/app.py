@@ -1160,6 +1160,50 @@ async def api_open_cuelinks_campaign(
             url=f"https://members.cj.com/member/publisher/{cid}/advertiserSearch.do",
             status_code=302,
         )
+    elif net in ("admitad", "admitad_api"):
+        clean_id = (id or "").replace("admitad_", "")
+        if clean_id:
+            return RedirectResponse(
+                url=f"https://www.admitad.com/en/webmaster/offers/{clean_id}/",
+                status_code=302,
+            )
+        return RedirectResponse(
+            url="https://www.admitad.com/en/webmaster/offers/",
+            status_code=302,
+        )
+    elif net in ("special_own", "own", "direct"):
+        b_clean = (brand or id or "").lower()
+        if "airindia" in b_clean or "air india" in b_clean:
+            return RedirectResponse(
+                url="https://www4.an.adobe.com/spa/index.html?linkId=16d90860-49e0-4eb1-9ce5-ccc029c9c62f&dpc=sin",
+                status_code=302,
+            )
+        return RedirectResponse(
+            url="https://api.trackier.com",
+            status_code=302,
+        )
+    elif net in ("zonet", "gotrackzo"):
+        clean_id = (id or "").replace("zonet_", "")
+        if clean_id and clean_id.isdigit():
+            return RedirectResponse(
+                url=f"https://gotrackzo.com/admin/stores/{clean_id}",
+                status_code=302,
+            )
+        return RedirectResponse(
+            url="https://gotrackzo.com/admin/stores",
+            status_code=302,
+        )
+    elif net in ("pantech", "pantech_digital"):
+        return RedirectResponse(
+            url="https://publisher.pantech.digital",
+            status_code=302,
+        )
+    elif net in ("icubeswire", "icubes"):
+        return RedirectResponse(
+            url="https://icubeswire.co",
+            status_code=302,
+        )
+
     target_url = campaign_finder.get_cuelinks_url(brand or "")
     return RedirectResponse(url=target_url, status_code=302)
 
@@ -1401,6 +1445,7 @@ async def api_get_unmonetized_brands(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     min_clicks: Optional[int] = 1,
+    benchmark_rpc: Optional[float] = 0.1651,
     filter: Optional[str] = "all",  # "all", "pure", "high_traffic"
     refresh: Optional[bool] = False,
 ):
@@ -1413,6 +1458,7 @@ async def api_get_unmonetized_brands(
             start_date=start_date,
             end_date=end_date,
             min_clicks=min_clicks or 1,
+            benchmark_rpc=benchmark_rpc or 0.1651,
             force_refresh=bool(refresh),
         )
         # Apply filter if requested
@@ -1437,6 +1483,7 @@ async def api_export_unmonetized_brands(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     min_clicks: Optional[int] = 1,
+    benchmark_rpc: Optional[float] = 0.1651,
     filter: Optional[str] = "all",
 ):
     """
@@ -1449,6 +1496,7 @@ async def api_export_unmonetized_brands(
             start_date=start_date,
             end_date=end_date,
             min_clicks=min_clicks or 1,
+            benchmark_rpc=benchmark_rpc or 0.1651,
         )
         brands = report.get("brands", [])
         if filter == "pure":
